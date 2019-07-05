@@ -4,6 +4,7 @@ import com.cjm721.overloaded.cb.block.BlockCompressed;
 import com.cjm721.overloaded.cb.block.CompressedBlockHandler;
 import com.cjm721.overloaded.cb.block.CompressedBlockItem;
 import com.cjm721.overloaded.cb.client.BlockResourcePack;
+import com.cjm721.overloaded.cb.config.ClientConfig;
 import com.cjm721.overloaded.cb.recipe.CompressionRecipe;
 import com.cjm721.overloaded.cb.recipe.DeCompressionRecipe;
 import net.minecraft.block.Block;
@@ -19,9 +20,9 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,23 +39,22 @@ public class CompressedBlocks {
   public static final String MODID = "overloaded_cb";
 
   public CompressedBlocks() {
-    MinecraftForge.EVENT_BUS.addListener(this::serverStartingEvent);
+//    MinecraftForge.EVENT_BUS.addListener(this::serverStartingEvent);
   }
 
-  public void serverAboutToStartEvent(FMLServerAboutToStartEvent event) {
+//  public void serverAboutToStartEvent(FMLServerAboutToStartEvent event) {
 //    event.getServer().getResourcePacks().addPackFinder();
 //        .getResourcePack()
 //        .ResourcePackInfo
 //        .createResourcePack" +
 //        "("overloaded_cb", false,()
 //        -> BlockResourcePack.INSTANCE, , ResourcePackInfo.Priority.BOTTOM));
+//  }
 
-  }
-
-  public void serverStartingEvent(FMLServerStartingEvent event) {
+//  public void serverStartingEvent(FMLServerStartingEvent event) {
 //    event.getServer().getResourceManager().addResourcePack(BlockResourcePack.INSTANCE);
 //    event.getServer().getRecipeManager().
-  }
+//  }
 
   public static final ItemGroup ITEM_GROUP = new ItemGroup("Overloaded_Compressed_Blocks") {
     @Override

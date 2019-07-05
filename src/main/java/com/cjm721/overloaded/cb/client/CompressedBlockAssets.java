@@ -1,5 +1,6 @@
 package com.cjm721.overloaded.cb.client;
 
+import com.cjm721.overloaded.cb.config.ClientConfig;
 import com.cjm721.overloaded.cb.config.CompressedConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.ITextureObject;
@@ -150,8 +151,8 @@ public class CompressedBlockAssets {
 
     BufferedImage compressedImage = new BufferedImage(image.getColorModel(), raster, false, null);
 
-    if (compressedImage.getWidth() > CompressedConfig.INSTANCE.maxTextureWidth) {
-      compressedImage = ImageUtil.scaleDownToWidth(compressedImage, CompressedConfig.INSTANCE.maxTextureWidth);
+    if (compressedImage.getWidth() > ClientConfig.INSTANCE.maxTextureWidth.get()) {
+      compressedImage = ImageUtil.scaleDownToWidth(compressedImage, ClientConfig.INSTANCE.maxTextureWidth.get());
     }
 
     ResourceLocation rl = getTexturePath(locations.compressed);

@@ -7,19 +7,17 @@ public class CompressedEntry {
     public int depth;
     public float hardnessMultiplier;
     public boolean recipeEnabled;
-    public boolean copyBaseBlockState;
 
     // Required as used by GSON
     public CompressedEntry() {
     }
 
-    public CompressedEntry(String baseRegistryName, String compressedPathRegistryName, String texturePath, int depth, float hardnessMultiplier, boolean recipeEnabled, boolean copyBaseBlockState) {
+    public CompressedEntry(String baseRegistryName, String compressedPathRegistryName, String texturePath, int depth, float hardnessMultiplier, boolean recipeEnabled) {
         this.baseRegistryName = baseRegistryName;
         this.compressedPathRegistryName = compressedPathRegistryName;
         this.texturePath = texturePath;
         this.depth = depth;
         this.hardnessMultiplier = hardnessMultiplier;
         this.recipeEnabled = recipeEnabled;
-        this.copyBaseBlockState = copyBaseBlockState;
     }
 }

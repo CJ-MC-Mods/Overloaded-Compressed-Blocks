@@ -1,7 +1,7 @@
 package com.cjm721.overloaded.cb.block;
 
 import com.cjm721.overloaded.cb.client.CompressedBlockAssets;
-import com.cjm721.overloaded.cb.config.CompressedConfig;
+import com.cjm721.overloaded.cb.config.ClientConfig;
 import com.cjm721.overloaded.cb.config.CompressedEntry;
 import com.google.common.collect.Lists;
 import net.minecraft.block.Block;
@@ -9,7 +9,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.IBlockReader;
@@ -35,7 +34,7 @@ public class BlockCompressed extends Block {
 
   BlockCompressed(@Nonnull String registryName, Block baseBlock, CompressedEntry entry, int compressionLevel) {
     super(Properties.from(baseBlock).hardnessAndResistance((float) Math.min(baseBlock.getDefaultState().getBlockHardness(null,
-        null) * Math.pow(9, compressionLevel), Float.MAX_VALUE)));
+        null) * Math.pow(entry.hardnessMultiplier, compressionLevel), Float.MAX_VALUE)));
 
     setRegistryName(MODID, registryName + "_" + compressionLevel);
     this.baseBlock = baseBlock;
@@ -59,8 +58,9 @@ public class BlockCompressed extends Block {
   @OnlyIn(Dist.CLIENT)
   @Override
   public void addInformation(ItemStack stack, @Nullable IBlockReader worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
-    if (CompressedConfig.INSTANCE.showHardness)
-      tooltip.add(new StringTextComponent(String.format("Hardness: %,d", Math.round(((BlockItem) stack.getItem())
+    if (worldIn != null && ClientConfig.INSTANCE.showHardness.get())
+      tooltip.add(new StringTextComponent(String.format("Hardness: %,d", Math.round((double) ((BlockItem) stack
+          .getItem())
           .getBlock()
           .getDefaultState()
           .getBlockHardness(null,
