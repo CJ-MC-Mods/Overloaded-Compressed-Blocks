@@ -30,6 +30,7 @@ public class CompressedBlockHandler {
         if(entry.recipeEnabled) {
           CompressedBlockAssets.addToRecipes(unCompressed.getRegistryName(), compressedBlock.getRegistryName());
         }
+        CompressedBlockAssets.addToDropLootTable(compressedBlock.getRegistryName());
 
         compressedBlock.setUnCompressed(unCompressed);
         if(unCompressed instanceof BlockCompressed) {

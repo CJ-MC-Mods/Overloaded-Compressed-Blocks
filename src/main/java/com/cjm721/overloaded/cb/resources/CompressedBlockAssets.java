@@ -35,6 +35,10 @@ public class CompressedBlockAssets {
         (compressed, unCompressed));
   }
 
+  public static void addToDropLootTable(ResourceLocation block) {
+    BlockResourcePack.INSTANCE.addResouce(getBlockLootPath(block),getBlockLootDrop(block));
+  }
+
   private static String getBlockState(@Nonnull ResourceLocation location) {
     return String.format("{\n" +
         "  \"variants\": {\n" +
@@ -94,6 +98,35 @@ public class CompressedBlockAssets {
         "}", input, result);
   }
 
+  private static String getBlockLootDrop(ResourceLocation block) {
+    return String.format("{\n" +
+        "  \"type\": \"minecraft:block\",\n" +
+        "  \"pools\": [\n" +
+        "    {\n" +
+        "      \"name\": \"%s\",\n" +
+        "      \"rolls\": 1,\n" +
+        "      \"entries\": [\n" +
+        "        {\n" +
+        "          \"type\": \"minecraft:item\",\n" +
+        "          \"functions\": [\n" +
+        "            {\n" +
+        "              \"function\": \"minecraft:copy_name\",\n" +
+        "              \"source\": \"block_entity\"\n" +
+        "            }\n" +
+        "          ],\n" +
+        "          \"name\": \"%s\"\n" +
+        "        }\n" +
+        "      ],\n" +
+        "      \"conditions\": [\n" +
+        "        {\n" +
+        "          \"condition\": \"minecraft:survives_explosion\"\n" +
+        "        }\n" +
+        "      ]\n" +
+        "    }\n" +
+        "  ]\n" +
+        "}", block.getPath(), block);
+  }
+
   private static ResourceLocation getBlockModelPath(@Nonnull ResourceLocation base) {
     return new ResourceLocation(base.getNamespace(), "block/" + base.getPath());
   }
@@ -112,6 +145,10 @@ public class CompressedBlockAssets {
 
   private static ResourceLocation getRecipesPath(@Nonnull ResourceLocation base, String type) {
     return new ResourceLocation(MODID, "recipes/" + type + "_" + base.getPath() + ".json");
+  }
+
+  private static ResourceLocation getBlockLootPath(@Nonnull ResourceLocation block) {
+    return new ResourceLocation(block.getNamespace(), "loot_tables/blocks/" + block.getPath() + ".json");
   }
 
   @SubscribeEvent

@@ -2,6 +2,7 @@
 
 * Remove physical data pack as no longer needed.
 * Remove some extra print statements.
+* Drops from blocks are now in loot_table so can be overridden
 
 -------------------------------------------------------------------
 **Version: 1.0.1 (Release)**

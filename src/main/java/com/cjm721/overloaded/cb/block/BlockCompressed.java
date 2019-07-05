@@ -88,9 +88,4 @@ public class BlockCompressed extends Block {
   void setUnCompressed(Block unCompressed) {
     this.unCompressed = unCompressed;
   }
-
-  @Override
-  public List<ItemStack> getDrops(BlockState state, LootContext.Builder builder) {
-    return Lists.newArrayList(new ItemStack(this, 1));
-  }
 }
