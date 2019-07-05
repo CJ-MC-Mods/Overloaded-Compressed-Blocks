@@ -1,5 +1,6 @@
 package com.cjm721.overloaded.cb.resources;
 
+import com.cjm721.overloaded.cb.config.ClientConfig;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.minecraft.profiler.IProfiler;
@@ -11,6 +12,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.io.*;
 import java.util.Collection;
 import java.util.Map;
@@ -19,7 +21,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 
+import static com.cjm721.overloaded.cb.CompressedBlocks.LOGGER;
 import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
+import static java.awt.image.BufferedImage.TYPE_INT_RGB;
 import static java.util.stream.Collectors.toList;
 
 public class BlockResourcePack implements IResourcePack {
@@ -30,12 +34,12 @@ public class BlockResourcePack implements IResourcePack {
     this.domains.add(MODID);
   }
 
-  private final Map<ResourceLocation, BufferedImage> images = Maps.newHashMap();
+  private final Map<ResourceLocation, CompressedBlockAssets.CompressedResourceLocation> images = Maps.newHashMap();
   private final Map<ResourceLocation, String> resource = Maps.newHashMap();
 
   private final Set<String> domains = Sets.newHashSet();
 
-  public void addImage(@Nonnull ResourceLocation res, @Nonnull BufferedImage image) {
+  public void addImage(@Nonnull ResourceLocation res, @Nonnull CompressedBlockAssets.CompressedResourceLocation image) {
     images.put(res, image);
   }
 
@@ -91,7 +95,7 @@ public class BlockResourcePack implements IResourcePack {
   }
 
   private InputStream getImageInputStream(@Nonnull ResourceLocation location) throws IOException {
-    BufferedImage image = images.get(location);
+    BufferedImage image = generateTexture(images.get(location));
     if (image != null) {
       ByteArrayOutputStream os = new ByteArrayOutputStream();
       ImageIO.write(image, "png", os);
@@ -126,5 +130,40 @@ public class BlockResourcePack implements IResourcePack {
 
   @Override
   public void close() throws IOException {
+  }
+
+  private static BufferedImage generateTexture(@Nonnull CompressedBlockAssets.CompressedResourceLocation locations) {
+    BufferedImage image;
+
+    ResourceLocation toLoad = locations.baseTexture == null ? new ResourceLocation
+        (locations.baseBlock.getNamespace(),
+            "textures/block/" + locations.baseBlock.getPath() + ".png") : new ResourceLocation(locations.baseTexture);
+    try {
+      image = ImageIO.read(ImageUtil.getTextureInputStream(toLoad));
+    } catch (IOException e) {
+      LOGGER.warn("Unable to load texture: " + toLoad, e);
+      return new BufferedImage(1,1, TYPE_INT_RGB);
+    }
+
+    int scale = locations.compressionAmount + 1;
+
+    int squareSize = Math.min(image.getWidth(), image.getHeight());
+
+    WritableRaster raster = image.getColorModel().createCompatibleWritableRaster(squareSize * scale, squareSize * scale);
+
+    int[] pixels = image.getData().getPixels(0, 0, squareSize, squareSize, (int[]) null);
+
+    for (int x = 0; x < scale; x++) {
+      for (int y = 0; y < scale; y++) {
+        raster.setPixels(x * squareSize, y * squareSize, squareSize, squareSize, pixels);
+      }
+    }
+
+    BufferedImage compressedImage = new BufferedImage(image.getColorModel(), raster, false, null);
+
+    if (compressedImage.getWidth() > ClientConfig.INSTANCE.maxTextureWidth.get()) {
+      compressedImage = ImageUtil.scaleDownToWidth(compressedImage, ClientConfig.INSTANCE.maxTextureWidth.get());
+    }
+    return compressedImage;
   }
 }

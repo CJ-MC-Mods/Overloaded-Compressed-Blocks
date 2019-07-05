@@ -1,3 +1,8 @@
+**Version: 1.0.2 (Release)**
+
+* Generate Textures as late as possible.
+
+-------------------------------------------------------------------
 **Version: 1.0.3 (Release)**
 
 * Regex support for config added for registry name.

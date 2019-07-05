@@ -1,7 +1,6 @@
 # Overview
 Allows creation of compressed blocks for any other block (this includes other mod's blocks) using a relatively simple
-JSON config. In that config you only need to mention resource name for the base, resource name for the compressed
-version, texture to use, and how many compression levels you want.
+JSON config. In that config you only need to mention resource name for the base.
 
 It will generate recipes for the 3x3 compression and un-compression for each block automatically (which can be disabled in the config entry).
 
@@ -19,9 +18,15 @@ This was part of [Overloaded](https://www.curseforge.com/minecraft/mc-mods/overl
     "depth": 16,
     "hardnessMultiplier": 9.0,
     "recipeEnabled": true
+  },
+  {
+    "baseRegistryName": "minecraft:.*_log"
   }
 ]
 ```
+
+Only required field is baseRegistryName (which allows Regex). Rest are optional with the same defaults as shown above. 
+Texture will default to `{namespace}:textures/blocks/{path}.png`.
 
 ### Warnings
 

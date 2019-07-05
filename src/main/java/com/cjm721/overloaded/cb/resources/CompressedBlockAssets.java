@@ -159,9 +159,8 @@ public class CompressedBlockAssets {
     }
 
     for (CompressedResourceLocation locations : toCreateTextures) {
-      if (!generateTexture(locations)) {
-        continue;
-      }
+      ResourceLocation rl = getTexturePath(locations.compressed);
+      BlockResourcePack.INSTANCE.addImage(modifyPath(rl, "textures/", ".png"), locations);
       event.addSprite(getTexturePath(locations.compressed));
     }
   }
@@ -183,45 +182,6 @@ public class CompressedBlockAssets {
     BlockResourcePack.INSTANCE.addResouce(modifyPath(getItemModelPath(locations.compressed), "models/", ".json"), getItemModel
         (locations
             .compressed));
-  }
-
-  private static boolean generateTexture(@Nonnull CompressedResourceLocation locations) {
-    BufferedImage image;
-
-    ResourceLocation toLoad = locations.baseTexture == null ? new ResourceLocation
-        (locations.baseBlock.getNamespace(),
-            "textures/block/" + locations.baseBlock.getPath() + ".png") : new ResourceLocation(locations.baseTexture);
-    try {
-      image = ImageIO.read(ImageUtil.getTextureInputStream(toLoad));
-    } catch (IOException e) {
-      LOGGER.warn("Unable to load texture: " + toLoad, e);
-      return false;
-    }
-
-    int scale = locations.compressionAmount + 1;
-
-    int squareSize = Math.min(image.getWidth(), image.getHeight());
-
-    WritableRaster raster = image.getColorModel().createCompatibleWritableRaster(squareSize * scale, squareSize * scale);
-
-    int[] pixels = image.getData().getPixels(0, 0, squareSize, squareSize, (int[]) null);
-
-    for (int x = 0; x < scale; x++) {
-      for (int y = 0; y < scale; y++) {
-        raster.setPixels(x * squareSize, y * squareSize, squareSize, squareSize, pixels);
-      }
-    }
-
-    BufferedImage compressedImage = new BufferedImage(image.getColorModel(), raster, false, null);
-
-    if (compressedImage.getWidth() > ClientConfig.INSTANCE.maxTextureWidth.get()) {
-      compressedImage = ImageUtil.scaleDownToWidth(compressedImage, ClientConfig.INSTANCE.maxTextureWidth.get());
-    }
-
-    ResourceLocation rl = getTexturePath(locations.compressed);
-    BlockResourcePack.INSTANCE.addImage(modifyPath(rl, "textures/", ".png"), compressedImage);
-
-    return true;
   }
 
   public static class CompressedResourceLocation {
