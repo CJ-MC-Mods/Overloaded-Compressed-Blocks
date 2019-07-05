@@ -1,9 +1,6 @@
-package com.cjm721.overloaded.cb.client;
+package com.cjm721.overloaded.cb.resources;
 
 import com.cjm721.overloaded.cb.config.ClientConfig;
-import com.cjm721.overloaded.cb.config.CompressedConfig;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -21,16 +18,22 @@ import java.util.List;
 
 import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
 
-@OnlyIn(Dist.CLIENT)
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class CompressedBlockAssets {
 
   private static final List<CompressedResourceLocation> toCreateTextures = new ArrayList<>();
 
-  public static void addToTextureQueue(CompressedResourceLocation location) {
+  public static void addToClientResourcesQueue(CompressedResourceLocation location) {
     toCreateTextures.add(location);
 
     generateBaseResouces(location);
+  }
+
+  public static void addToRecipes(ResourceLocation unCompressed, ResourceLocation compressed) {
+    BlockResourcePack.INSTANCE.addResouce(getRecipesPath(unCompressed, "compress"), getCompressionRecipe
+        (unCompressed, compressed));
+    BlockResourcePack.INSTANCE.addResouce(getRecipesPath(compressed, "de_compress"), getDeCompressionRecipe
+        (compressed, unCompressed));
   }
 
   private static String getBlockState(@Nonnull ResourceLocation location) {
@@ -41,21 +44,6 @@ public class CompressedBlockAssets {
         "    }\n" +
         "  }\n" +
         "}\n", getBlockModelPath(location));
-
-    //    return String.format(
-//        "{ " +
-//            "\"forge_marker\": 1, " +
-//            "\"defaults\": { " +
-//            "\"model\": \"cube_all\", " +
-//            "\"textures\": { " +
-//            "\"all\": \"%1$s\" " +
-//            "} " +
-//            "}," +
-//            "\"variants\": { " +
-//            "\"normal\": [{ }], " +
-//            "\"inventory\": [{ }] " +
-//            "}" +
-//            "}", getBlocksPath(location));
   }
 
   private static String getBlockModel(@Nonnull ResourceLocation location) {
@@ -73,6 +61,40 @@ public class CompressedBlockAssets {
         "}", getBlockModelPath(location));
   }
 
+  private static String getCompressionRecipe(ResourceLocation input, ResourceLocation result) {
+    return String.format("{\n" +
+        "  \"type\": \"minecraft:crafting_shaped\",\n" +
+        "  \"pattern\": [\n" +
+        "    \"NNN\",\n" +
+        "    \"NNN\",\n" +
+        "    \"NNN\"\n" +
+        "  ],\n" +
+        "  \"key\": {\n" +
+        "    \"N\": {\n" +
+        "      \"item\": \"%s\"\n" +
+        "    }\n" +
+        "  },\n" +
+        "  \"result\": {\n" +
+        "    \"item\": \"%s\"\n" +
+        "  }\n" +
+        "}", input, result);
+  }
+
+  private static String getDeCompressionRecipe(ResourceLocation input, ResourceLocation result) {
+    return String.format("{\n" +
+        "  \"type\": \"minecraft:crafting_shapeless\",\n" +
+        "  \"ingredients\": [\n" +
+        "    {\n" +
+        "      \"item\": \"%s\"\n" +
+        "    }\n" +
+        "  ],\n" +
+        "  \"result\": {\n" +
+        "    \"item\": \"%s\",\n" +
+        "    \"count\": 9\n" +
+        "  }\n" +
+        "}", input, result);
+  }
+
   private static ResourceLocation getBlockModelPath(@Nonnull ResourceLocation base) {
     return new ResourceLocation(base.getNamespace(), "block/" + base.getPath());
   }
@@ -85,8 +107,12 @@ public class CompressedBlockAssets {
     return new ResourceLocation(base.getNamespace(), "block/" + base.getPath());
   }
 
-  private static ResourceLocation getJsonPath(@Nonnull ResourceLocation base) {
+  private static ResourceLocation getBlockStatesPath(@Nonnull ResourceLocation base) {
     return new ResourceLocation(base.getNamespace(), "blockstates/" + base.getPath() + ".json");
+  }
+
+  private static ResourceLocation getRecipesPath(@Nonnull ResourceLocation base, String type) {
+    return new ResourceLocation(MODID, "recipes/" + type + "_" + base.getPath() + ".json");
   }
 
   @SubscribeEvent
@@ -104,14 +130,15 @@ public class CompressedBlockAssets {
   }
 
   @SubscribeEvent
-  public static void texturePost(TextureStitchEvent.Post event) {}
+  public static void texturePost(TextureStitchEvent.Post event) {
+  }
 
   private static ResourceLocation modifyPath(ResourceLocation location, String prefix, String suffix) {
     return new ResourceLocation(location.getNamespace(), prefix + location.getPath() + suffix);
   }
 
   private static void generateBaseResouces(@Nonnull CompressedResourceLocation locations) {
-    BlockResourcePack.INSTANCE.addResouce(getJsonPath(locations.compressed), getBlockState(locations.compressed));
+    BlockResourcePack.INSTANCE.addResouce(getBlockStatesPath(locations.compressed), getBlockState(locations.compressed));
     BlockResourcePack.INSTANCE.addResouce(modifyPath(getBlockModelPath(locations.compressed), "models/", ".json"),
         getBlockModel
             (locations

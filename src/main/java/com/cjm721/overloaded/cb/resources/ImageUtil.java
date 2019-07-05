@@ -1,4 +1,4 @@
-package com.cjm721.overloaded.cb.client;
+package com.cjm721.overloaded.cb.resources;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;

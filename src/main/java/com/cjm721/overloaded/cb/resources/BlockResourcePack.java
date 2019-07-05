@@ -1,9 +1,7 @@
-package com.cjm721.overloaded.cb.client;
+package com.cjm721.overloaded.cb.resources;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import io.netty.util.concurrent.CompleteFuture;
-import net.minecraft.client.Minecraft;
 import net.minecraft.profiler.IProfiler;
 import net.minecraft.resources.*;
 import net.minecraft.resources.data.IMetadataSectionSerializer;
@@ -15,7 +13,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -23,6 +20,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 
 import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
+import static java.util.stream.Collectors.toList;
 
 public class BlockResourcePack implements IResourcePack {
 
@@ -45,8 +43,7 @@ public class BlockResourcePack implements IResourcePack {
     resource.put(res, state);
   }
 
-  public final void injectClient() {
-    IResourceManager manager = Minecraft.getInstance().getResourceManager();
+  public final void inject(IResourceManager manager) {
     manager.addResourcePack(this);
     if (manager instanceof IReloadableResourceManager) {
       ((IReloadableResourceManager) manager).addReloadListener(new IFutureReloadListener() {
@@ -88,7 +85,10 @@ public class BlockResourcePack implements IResourcePack {
   public Collection<ResourceLocation> getAllResourceLocations(@Nonnull ResourcePackType type, @Nonnull String pathIn,
                                                               int maxDepth, @Nonnull Predicate<String> filter) {
     System.out.println("getAllResoruceLocations");
-    return Collections.emptyList();
+    return resource.entrySet().stream().filter(e -> e.getKey().getPath().startsWith(pathIn)).map(e -> new
+        ResourceLocation
+        (e.getKey().getNamespace(), e.getKey().getPath()))
+        .collect(toList());
   }
 
   private InputStream getImageInputStream(@Nonnull ResourceLocation location) throws IOException {
