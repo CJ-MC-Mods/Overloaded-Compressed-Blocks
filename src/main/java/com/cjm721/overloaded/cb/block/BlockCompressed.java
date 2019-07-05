@@ -85,18 +85,8 @@ public class BlockCompressed extends Block {
     this.compressed = compressed;
   }
 
-  @Nullable
-  public BlockCompressed getCompressedVersion() {
-    return this.compressed;
-  }
-
   void setUnCompressed(Block unCompressed) {
     this.unCompressed = unCompressed;
-  }
-
-  @Nonnull
-  public Block getUnCompressedVersion() {
-    return this.unCompressed;
   }
 
   @Override
