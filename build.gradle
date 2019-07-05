@@ -1,0 +1,161 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        maven {
+            url = "http://files.minecraftforge.net/maven"
+        }
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'gradle.plugin.com.matthewprenger', name: 'CurseGradle', version: "1.+"
+    }
+}
+
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+apply plugin: 'net.minecraftforge.gradle'
+//Only edit below this line, the above code adds and enables the nessasary things for Forge to be setup.
+apply plugin: 'maven'
+apply plugin: 'idea'
+apply plugin: 'com.matthewprenger.cursegradle'
+
+
+idea{
+    module{
+        for (String excludeDirName in ["run", "out", "ouput", "logs", "gradle"]) {
+            File excludeDir = new File(projectDir, excludeDirName)
+            excludeDirs.add(excludeDir)
+        }
+    }
+}
+
+repositories  {
+    maven {
+        name 'tterrag maven'
+        url "http://maven.tterrag.com/"
+    }
+    maven {
+        name = "CoFH Maven"
+        url = "http://maven.covers1624.net"
+    }
+    maven {
+        url "http://tehnut.info/maven"
+    }
+    maven {
+        // location of the maven that hosts JEI files
+        name = "Progwml6 maven"
+        url = "https://dvs1.progwml6.com/files/maven/"
+    }
+    maven {
+        // location of a maven mirror for JEI files, as a fallback
+        name = "ModMaven"
+        url = "https://modmaven.k-4u.nl"
+    }
+}
+
+group= "com.cjm721.overloaded.cb"
+archivesBaseName = "Overloaded Compressed Blocks"
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+
+minecraft {
+    mappings channel: 'snapshot', version: mappings_version
+
+    runs {
+        client {
+            workingDirectory project.file('run')
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                overloaded {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run')
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                overloaded {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+jar {
+    manifest {
+        attributes([
+                "Specification-Title": "Overloaded Compressed Blocks",
+                "Specification-Vendor": "cjm721",
+                "Specification-Version": project.version,
+                "Implementation-Title": project.name,
+                "Implementation-Version": mod_version,
+                "Implementation-Vendor" :"cjm721",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+        ])
+    }
+}
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+    testCompile "org.mockito:mockito-core:+"
+    testCompile "com.google.truth:truth:+"
+
+    minecraft 'net.minecraftforge:forge:' + minecraft_version + '-' + forge_version
+
+    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:6.0.0.7")
+}
+
+version = "${minecraft_version}-${mod_version}"
+
+processResources {
+    exclude '**/*.xcf'
+    from(sourceSets.main.resources.srcDirs) {
+        include 'META-INF/mods.toml'
+
+        expand 'version': project.version
+    }
+
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'META-INF/mods.toml'
+    }
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier = 'sources'
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+curseforge {
+    if (project.hasProperty('curseForgeAPIKey')) {
+        apiKey = project.findProperty('curseForgeAPIKey')
+    }
+    project {
+        id = '319973'
+        changelog = file('CHANGELOG.md') // A file can also be set using: changelog = file('changelog.txt')
+        changelogType = 'markdown'
+        releaseType = 'alpha'
+    }
+}
