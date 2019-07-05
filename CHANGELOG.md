@@ -1,3 +1,14 @@
+**Version: 1.0.2 (Release)**
+
+* Remove physical data pack as no longer needed.
+* Remove some extra print statements.
+
+-------------------------------------------------------------------
+**Version: 1.0.1 (Release)**
+
+* Recipes now sync from server. (Fixes #1)
+
+-------------------------------------------------------------------
 **Version: 1.0.0 (Beta)**
 
 * Initial port and split from Overloaded v1.12.

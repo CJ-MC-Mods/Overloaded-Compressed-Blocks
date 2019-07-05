@@ -84,7 +84,6 @@ public class BlockResourcePack implements IResourcePack {
   @Nonnull
   public Collection<ResourceLocation> getAllResourceLocations(@Nonnull ResourcePackType type, @Nonnull String pathIn,
                                                               int maxDepth, @Nonnull Predicate<String> filter) {
-    System.out.println("getAllResoruceLocations");
     return resource.entrySet().stream().filter(e -> e.getKey().getPath().startsWith(pathIn)).map(e -> new
         ResourceLocation
         (e.getKey().getNamespace(), e.getKey().getPath()))
