@@ -1,6 +1,7 @@
-**Version: 1.0.2 (Release)**
+**Version: 1.0.4 (Release)**
 
 * Generate Textures as late as possible.
+* Dynamically add dependencies so make sure all other mods registry events happen first.
 
 -------------------------------------------------------------------
 **Version: 1.0.3 (Release)**
