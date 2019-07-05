@@ -4,7 +4,6 @@ import com.cjm721.overloaded.cb.block.BlockCompressed;
 import com.cjm721.overloaded.cb.block.CompressedBlockHandler;
 import com.cjm721.overloaded.cb.block.CompressedBlockItem;
 import com.cjm721.overloaded.cb.client.BlockResourcePack;
-import com.cjm721.overloaded.cb.config.ClientConfig;
 import com.cjm721.overloaded.cb.recipe.CompressionRecipe;
 import com.cjm721.overloaded.cb.recipe.DeCompressionRecipe;
 import net.minecraft.block.Block;
@@ -16,13 +15,10 @@ import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.item.crafting.SpecialRecipeSerializer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -69,7 +65,7 @@ public class CompressedBlocks {
 
     @SubscribeEvent
     public static void onBlocksRegistry(final RegistryEvent.Register<Block> blockRegistryEvent) {
-      DistExecutor.runWhenOn(Dist.CLIENT, () -> BlockResourcePack.INSTANCE::inject);
+      DistExecutor.runWhenOn(Dist.CLIENT, () -> BlockResourcePack.INSTANCE::injectClient);
       blocks = CompressedBlockHandler.initFromConfig();
       IForgeRegistry<Block> registry = blockRegistryEvent.getRegistry();
 

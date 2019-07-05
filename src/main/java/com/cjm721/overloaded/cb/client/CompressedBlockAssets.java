@@ -91,7 +91,6 @@ public class CompressedBlockAssets {
 
   @SubscribeEvent
   public static void texturePre(TextureStitchEvent.Pre event) {
-    System.out.println("TextureStitchEvent.Pre HIT : " + event.getMap().getBasePath());
     if (!event.getMap().getBasePath().equals("textures")) {
       return;
     }
@@ -100,16 +99,12 @@ public class CompressedBlockAssets {
       if (!generateTexture(locations)) {
         continue;
       }
-      ITextureObject texture = Minecraft.getInstance().getTextureManager().getTexture(new ResourceLocation("minecraft",
-          "cobblestone"));
       event.addSprite(getTexturePath(locations.compressed));
     }
   }
 
   @SubscribeEvent
-  public static void texturePost(TextureStitchEvent.Post event) {
-    System.out.println("TextureStitchEvent.Post HIT");
-  }
+  public static void texturePost(TextureStitchEvent.Post event) {}
 
   private static ResourceLocation modifyPath(ResourceLocation location, String prefix, String suffix) {
     return new ResourceLocation(location.getNamespace(), prefix + location.getPath() + suffix);

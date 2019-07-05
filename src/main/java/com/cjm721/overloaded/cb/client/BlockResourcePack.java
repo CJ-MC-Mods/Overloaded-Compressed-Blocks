@@ -2,13 +2,12 @@ package com.cjm721.overloaded.cb.client;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import io.netty.util.concurrent.CompleteFuture;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.IResourcePack;
-import net.minecraft.resources.ResourcePackType;
+import net.minecraft.profiler.IProfiler;
+import net.minecraft.resources.*;
 import net.minecraft.resources.data.IMetadataSectionSerializer;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.MinecraftForge;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -19,6 +18,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 
 import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
@@ -45,14 +46,18 @@ public class BlockResourcePack implements IResourcePack {
     resource.put(res, state);
   }
 
-  public final void inject() {
-    Minecraft.getInstance().getResourceManager().addResourcePack(this);
-//        List<IResourcePack> defaultResourcePacks = ObfuscationReflectionHelper.getPrivateValue(Minecraft.class, Minecraft.getInstance(), "defaultResourcePacks");
-//        defaultResourcePacks.add(this);
-//
-//        Map<String, FallbackResourceManager> domainResourceManagers = ObfuscationReflectionHelper.getPrivateValue(SimpleReloadableResourceManager.class, (SimpleReloadableResourceManager) Minecraft.getInstance().getResourceManager(), "namespaceResourceManagers");
-//        domainResourceManagers.get(MODID).addResourcePack(this);
-//        this.manager = domainResourceManagers.get(MODID);
+  public final void injectClient() {
+    IResourceManager manager = Minecraft.getInstance().getResourceManager();
+    manager.addResourcePack(this);
+    if (manager instanceof IReloadableResourceManager) {
+//      ((IReloadableResourceManager) manager).addReloadListener(new IFutureReloadListener() {
+//        @Override
+//        public CompletableFuture<Void> reload(IStage iStage, IResourceManager iResourceManager, IProfiler iProfiler, IProfiler iProfiler1, Executor executor, Executor executor1) {
+//          return iStage.markCompleteAwaitingOthers(CompletableFuture.completedFuture(null));
+////          return CompletableFuture.runAsync(() -> manager.addResourcePack(BlockResourcePack.this), executor1);
+//        }
+//      });
+    }
   }
 
   @Override
