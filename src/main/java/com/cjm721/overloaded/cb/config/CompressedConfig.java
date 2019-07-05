@@ -10,9 +10,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class CompressedConfig {
-
-  public static final CompressedConfig INSTANCE = new CompressedConfig();
-
   private static final CompressedEntry[] defaults = new CompressedEntry[]{
       new CompressedEntry("minecraft:cobblestone", null, 16, 9.0f, true),
       new CompressedEntry("minecraft:sand", null, 16, 9.0f, true),
@@ -26,7 +23,13 @@ public class CompressedConfig {
       new CompressedEntry("minecraft:.*_concrete$", null, 16, 9.0f, true),
   };
 
+  private static CompressedEntry[] entries;
+
   public static CompressedEntry[] getCompressedEntries() {
+    if (entries != null) {
+      return entries;
+    }
+
     try {
       File file = FMLPaths.CONFIGDIR.get().resolve("overloaded_compressed_blocks").toFile();
       file.mkdirs();
@@ -41,10 +44,10 @@ public class CompressedConfig {
         writer.write(json);
         writer.flush();
         writer.close();
-        return defaults;
+        return entries = defaults;
       }
 
-      return gson.fromJson(new FileReader(file), CompressedEntry[].class);
+      return entries = gson.fromJson(new FileReader(file), CompressedEntry[].class);
     } catch (IOException e) {
       throw new RuntimeException("Impossible Exception, file existed moments ago", e);
     }
