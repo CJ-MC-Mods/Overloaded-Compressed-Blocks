@@ -1,8 +1,8 @@
 package com.cjm721.overloaded.cb.block;
 
-import com.cjm721.overloaded.cb.client.CompressedBlockAssets;
 import com.cjm721.overloaded.cb.config.ClientConfig;
 import com.cjm721.overloaded.cb.config.CompressedEntry;
+import com.cjm721.overloaded.cb.resources.CompressedBlockAssets;
 import com.google.common.collect.Lists;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -24,7 +24,6 @@ import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
 
 public class BlockCompressed extends Block {
 
-  private final boolean recipeEnabled;
   private Block baseBlock;
   private final int compressionLevel;
   private final CompressedEntry entry;
@@ -41,7 +40,6 @@ public class BlockCompressed extends Block {
 
     this.entry = entry;
     this.compressionLevel = compressionLevel;
-    this.recipeEnabled = entry.recipeEnabled;
   }
 
   @Nullable
@@ -71,8 +69,8 @@ public class BlockCompressed extends Block {
 
   @OnlyIn(Dist.CLIENT)
   public void registerModel() {
-    CompressedBlockAssets.addToTextureQueue(new CompressedBlockAssets.CompressedResourceLocation(entry.texturePath,
-        getRegistryName(), compressionLevel));
+    CompressedBlockAssets.addToClientResourcesQueue(
+        new CompressedBlockAssets.CompressedResourceLocation(entry.texturePath, getRegistryName(), compressionLevel));
   }
 
   Block getBaseBlock() {
@@ -104,9 +102,5 @@ public class BlockCompressed extends Block {
   @Override
   public List<ItemStack> getDrops(BlockState state, LootContext.Builder builder) {
     return Lists.newArrayList(new ItemStack(this, 1));
-  }
-
-  public boolean getRecipeEnabled() {
-    return recipeEnabled;
   }
 }

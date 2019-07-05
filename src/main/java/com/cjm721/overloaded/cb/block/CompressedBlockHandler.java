@@ -2,6 +2,7 @@ package com.cjm721.overloaded.cb.block;
 
 import com.cjm721.overloaded.cb.config.CompressedConfig;
 import com.cjm721.overloaded.cb.config.CompressedEntry;
+import com.cjm721.overloaded.cb.resources.CompressedBlockAssets;
 import net.minecraft.block.Block;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -26,8 +27,8 @@ public class CompressedBlockHandler {
         BlockCompressed compressedBlock = new BlockCompressed(entry.compressedPathRegistryName,
             baseBlock, entry, i + 1);
 
-        if(i == 0 && compressedBlock.getRecipeEnabled()) {
-          firstStageCompression.put(baseBlock, compressedBlock);
+        if(entry.recipeEnabled) {
+          CompressedBlockAssets.addToRecipes(unCompressed.getRegistryName(), compressedBlock.getRegistryName());
         }
 
         compressedBlock.setUnCompressed(unCompressed);

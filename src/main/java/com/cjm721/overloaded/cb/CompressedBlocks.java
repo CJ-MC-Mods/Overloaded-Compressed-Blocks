@@ -3,22 +3,21 @@ package com.cjm721.overloaded.cb;
 import com.cjm721.overloaded.cb.block.BlockCompressed;
 import com.cjm721.overloaded.cb.block.CompressedBlockHandler;
 import com.cjm721.overloaded.cb.block.CompressedBlockItem;
-import com.cjm721.overloaded.cb.client.BlockResourcePack;
-import com.cjm721.overloaded.cb.recipe.CompressionRecipe;
-import com.cjm721.overloaded.cb.recipe.DeCompressionRecipe;
+import com.cjm721.overloaded.cb.resources.BlockResourcePack;
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.SpecialRecipeSerializer;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,22 +34,12 @@ public class CompressedBlocks {
   public static final String MODID = "overloaded_cb";
 
   public CompressedBlocks() {
-//    MinecraftForge.EVENT_BUS.addListener(this::serverStartingEvent);
+    MinecraftForge.EVENT_BUS.addListener(this::serverAboutToStartEvent);
   }
 
-//  public void serverAboutToStartEvent(FMLServerAboutToStartEvent event) {
-//    event.getServer().getResourcePacks().addPackFinder();
-//        .getResourcePack()
-//        .ResourcePackInfo
-//        .createResourcePack" +
-//        "("overloaded_cb", false,()
-//        -> BlockResourcePack.INSTANCE, , ResourcePackInfo.Priority.BOTTOM));
-//  }
-
-//  public void serverStartingEvent(FMLServerStartingEvent event) {
-//    event.getServer().getResourceManager().addResourcePack(BlockResourcePack.INSTANCE);
-//    event.getServer().getRecipeManager().
-//  }
+  public void serverAboutToStartEvent(FMLServerAboutToStartEvent event) {
+    BlockResourcePack.INSTANCE.inject(event.getServer().getResourceManager());
+  }
 
   public static final ItemGroup ITEM_GROUP = new ItemGroup("Overloaded_Compressed_Blocks") {
     @Override
@@ -65,7 +54,8 @@ public class CompressedBlocks {
 
     @SubscribeEvent
     public static void onBlocksRegistry(final RegistryEvent.Register<Block> blockRegistryEvent) {
-      DistExecutor.runWhenOn(Dist.CLIENT, () -> BlockResourcePack.INSTANCE::injectClient);
+      DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> BlockResourcePack.INSTANCE.inject(Minecraft.getInstance()
+          .getResourceManager()));
       blocks = CompressedBlockHandler.initFromConfig();
       IForgeRegistry<Block> registry = blockRegistryEvent.getRegistry();
 
@@ -83,14 +73,6 @@ public class CompressedBlocks {
       for (BlockCompressed block : blocks) {
         registry.register(new CompressedBlockItem(block));
       }
-    }
-
-    @SubscribeEvent
-    public static void registerRecipes(final RegistryEvent.Register<IRecipeSerializer<?>> event) {
-      event.getRegistry().register(new SpecialRecipeSerializer<>(CompressionRecipe::new).setRegistryName(new
-          ResourceLocation(MODID, "compressor")));
-      event.getRegistry().register(new SpecialRecipeSerializer<>(DeCompressionRecipe::new).setRegistryName(new
-          ResourceLocation(MODID, "de_compressor")));
     }
   }
 }
