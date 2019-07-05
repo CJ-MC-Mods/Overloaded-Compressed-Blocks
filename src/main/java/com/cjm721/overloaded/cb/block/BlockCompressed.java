@@ -56,7 +56,7 @@ public class BlockCompressed extends Block {
   @OnlyIn(Dist.CLIENT)
   @Override
   public void addInformation(ItemStack stack, @Nullable IBlockReader worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
-    if (worldIn != null && ClientConfig.INSTANCE.showHardness.get())
+    if (ClientConfig.INSTANCE.showHardness.get())
       tooltip.add(new StringTextComponent(String.format("Hardness: %,d", Math.round((double) ((BlockItem) stack
           .getItem())
           .getBlock()

@@ -3,6 +3,7 @@ package com.cjm721.overloaded.cb;
 import com.cjm721.overloaded.cb.block.BlockCompressed;
 import com.cjm721.overloaded.cb.block.CompressedBlockHandler;
 import com.cjm721.overloaded.cb.block.CompressedBlockItem;
+import com.cjm721.overloaded.cb.config.ClientConfig;
 import com.cjm721.overloaded.cb.resources.BlockResourcePack;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -34,6 +35,7 @@ public class CompressedBlocks {
   public static final String MODID = "overloaded_cb";
 
   public CompressedBlocks() {
+    ClientConfig.init();
     MinecraftForge.EVENT_BUS.addListener(this::serverAboutToStartEvent);
   }
 

@@ -2,7 +2,8 @@
 
 * Remove physical data pack as no longer needed.
 * Remove some extra print statements.
-* Drops from blocks are now in loot_table so can be overridden
+* Drops from blocks are now in loot_table so can be overridden.
+* Force config to load early so can use it in blocks / textures consistently.
 
 -------------------------------------------------------------------
 **Version: 1.0.1 (Release)**
