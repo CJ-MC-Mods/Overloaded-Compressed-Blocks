@@ -70,7 +70,9 @@ public class BlockCompressed extends Block {
   @OnlyIn(Dist.CLIENT)
   public void registerModel() {
     CompressedBlockAssets.addToClientResourcesQueue(
-        new CompressedBlockAssets.CompressedResourceLocation(entry.texturePath, getRegistryName(), compressionLevel));
+        new CompressedBlockAssets.CompressedResourceLocation(this.baseBlock.getRegistryName(), entry.texturePath,
+            getRegistryName(),
+            compressionLevel));
   }
 
   Block getBaseBlock() {

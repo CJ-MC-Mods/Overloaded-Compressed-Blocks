@@ -30,7 +30,7 @@ import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
 @Mod(MODID)
 public class CompressedBlocks {
 
-  private static final Logger LOGGER = LogManager.getLogger();
+  public static final Logger LOGGER = LogManager.getLogger();
 
   public static final String MODID = "overloaded_cb";
 

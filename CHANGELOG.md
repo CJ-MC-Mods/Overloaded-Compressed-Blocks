@@ -1,3 +1,10 @@
+**Version: 1.0.3 (Release)**
+
+* Regex support for config added for registry name.
+* Added default values for all other options so regex can work.
+* If texturePath is provided it disables the auto-lookup (auto-look is not very smart).
+
+-------------------------------------------------------------------
 **Version: 1.0.2 (Release)**
 
 * Remove physical data pack as no longer needed.

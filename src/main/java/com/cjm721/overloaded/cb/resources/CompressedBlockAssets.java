@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.cjm721.overloaded.cb.CompressedBlocks.LOGGER;
 import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -36,7 +37,7 @@ public class CompressedBlockAssets {
   }
 
   public static void addToDropLootTable(ResourceLocation block) {
-    BlockResourcePack.INSTANCE.addResouce(getBlockLootPath(block),getBlockLootDrop(block));
+    BlockResourcePack.INSTANCE.addResouce(getBlockLootPath(block), getBlockLootDrop(block));
   }
 
   private static String getBlockState(@Nonnull ResourceLocation location) {
@@ -186,10 +187,14 @@ public class CompressedBlockAssets {
 
   private static boolean generateTexture(@Nonnull CompressedResourceLocation locations) {
     BufferedImage image;
+
+    ResourceLocation toLoad = locations.baseTexture == null ? new ResourceLocation
+        (locations.baseBlock.getNamespace(),
+            "textures/block/" + locations.baseBlock.getPath() + ".png") : new ResourceLocation(locations.baseTexture);
     try {
-      image = ImageIO.read(ImageUtil.getTextureInputStream(new ResourceLocation(locations.baseTexture)));
+      image = ImageIO.read(ImageUtil.getTextureInputStream(toLoad));
     } catch (IOException e) {
-      e.printStackTrace();
+      LOGGER.warn("Unable to load texture: " + toLoad, e);
       return false;
     }
 
@@ -220,11 +225,15 @@ public class CompressedBlockAssets {
   }
 
   public static class CompressedResourceLocation {
+    final ResourceLocation baseBlock;
     final String baseTexture;
     final ResourceLocation compressed;
     final int compressionAmount;
 
-    public CompressedResourceLocation(String baseTexture, @Nonnull ResourceLocation compressed, int compressionAmount) {
+    public CompressedResourceLocation(ResourceLocation baseBlock, String baseTexture, @Nonnull ResourceLocation
+        compressed, int
+                                          compressionAmount) {
+      this.baseBlock = baseBlock;
       this.baseTexture = baseTexture;
       this.compressed = compressed;
       this.compressionAmount = compressionAmount;

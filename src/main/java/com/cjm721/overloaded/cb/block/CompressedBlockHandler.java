@@ -7,38 +7,41 @@ import net.minecraft.block.Block;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class CompressedBlockHandler {
-
-  public static Map<Block, BlockCompressed> firstStageCompression = new HashMap<>();
-
   public static List<BlockCompressed> initFromConfig() {
     List<BlockCompressed> compressedBlocks = new LinkedList<>();
 
+
     for (CompressedEntry entry : CompressedConfig.getCompressedEntries()) {
-      Block baseBlock = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(entry.baseRegistryName));
-      Block unCompressed = baseBlock;
+      List<Map.Entry<ResourceLocation, Block>> matchedEntries = ForgeRegistries.BLOCKS.getEntries().stream().filter(e -> e.getKey().toString().matches(entry
+          .baseRegistryName))
+          .collect(Collectors.toList());
 
-      for (int i = 0; i < entry.depth; i++) {
-        BlockCompressed compressedBlock = new BlockCompressed(entry.compressedPathRegistryName,
-            baseBlock, entry, i + 1);
+      for (Map.Entry<ResourceLocation, Block> matchedEntry : matchedEntries) {
+        Block unCompressed = matchedEntry.getValue();
 
-        if(entry.recipeEnabled) {
-          CompressedBlockAssets.addToRecipes(unCompressed.getRegistryName(), compressedBlock.getRegistryName());
+        for (int i = 0; i < entry.depth; i++) {
+          BlockCompressed compressedBlock = new BlockCompressed("compressed_" + matchedEntry.getKey().getPath(),
+              matchedEntry.getValue(), entry, i + 1);
+
+          if (entry.recipeEnabled) {
+            CompressedBlockAssets.addToRecipes(unCompressed.getRegistryName(), compressedBlock.getRegistryName());
+          }
+          CompressedBlockAssets.addToDropLootTable(compressedBlock.getRegistryName());
+
+          compressedBlock.setUnCompressed(unCompressed);
+          if (unCompressed instanceof BlockCompressed) {
+            ((BlockCompressed) unCompressed).setCompressed(compressedBlock);
+          }
+          compressedBlocks.add(compressedBlock);
+
+          unCompressed = compressedBlock;
         }
-        CompressedBlockAssets.addToDropLootTable(compressedBlock.getRegistryName());
-
-        compressedBlock.setUnCompressed(unCompressed);
-        if(unCompressed instanceof BlockCompressed) {
-          ((BlockCompressed) unCompressed).setCompressed(compressedBlock);
-        }
-        compressedBlocks.add(compressedBlock);
-
-        unCompressed = compressedBlock;
       }
     }
     return compressedBlocks;
