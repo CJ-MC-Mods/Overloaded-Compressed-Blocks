@@ -27,7 +27,6 @@ import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
 public class BlockResourcePack implements IResourcePack {
 
   public static final BlockResourcePack INSTANCE = new BlockResourcePack();
-//    public FallbackResourceManager manager;
 
   private BlockResourcePack() {
     this.domains.add(MODID);
@@ -50,13 +49,13 @@ public class BlockResourcePack implements IResourcePack {
     IResourceManager manager = Minecraft.getInstance().getResourceManager();
     manager.addResourcePack(this);
     if (manager instanceof IReloadableResourceManager) {
-//      ((IReloadableResourceManager) manager).addReloadListener(new IFutureReloadListener() {
-//        @Override
-//        public CompletableFuture<Void> reload(IStage iStage, IResourceManager iResourceManager, IProfiler iProfiler, IProfiler iProfiler1, Executor executor, Executor executor1) {
-//          return iStage.markCompleteAwaitingOthers(CompletableFuture.completedFuture(null));
-////          return CompletableFuture.runAsync(() -> manager.addResourcePack(BlockResourcePack.this), executor1);
-//        }
-//      });
+      ((IReloadableResourceManager) manager).addReloadListener(new IFutureReloadListener() {
+        @Override
+        public CompletableFuture<Void> reload(IStage iStage, IResourceManager iResourceManager, IProfiler iProfiler, IProfiler iProfiler1, Executor executor, Executor executor1) {
+          iResourceManager.addResourcePack(BlockResourcePack.this);
+          return iStage.markCompleteAwaitingOthers(null);
+        }
+      });
     }
   }
 
@@ -117,7 +116,6 @@ public class BlockResourcePack implements IResourcePack {
   @Nullable
   @Override
   public <T> T getMetadata(@Nonnull IMetadataSectionSerializer<T> deserializer) throws IOException {
-    System.out.println("getmetadata");
     return null;
   }
 
