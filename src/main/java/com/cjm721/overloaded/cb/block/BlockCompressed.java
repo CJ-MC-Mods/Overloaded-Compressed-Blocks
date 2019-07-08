@@ -6,6 +6,7 @@ import com.cjm721.overloaded.cb.resources.CompressedBlockAssets;
 import com.google.common.collect.Lists;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
@@ -57,12 +58,10 @@ public class BlockCompressed extends Block {
   @Override
   public void addInformation(ItemStack stack, @Nullable IBlockReader worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
     if (ClientConfig.INSTANCE.showHardness.get())
-      tooltip.add(new StringTextComponent(String.format("Hardness: %,d", Math.round((double) ((BlockItem) stack
-          .getItem())
+      tooltip.add(new StringTextComponent(String.format("Hardness: %,d", Math.round((double) ((BlockItem) stack.getItem())
           .getBlock()
           .getDefaultState()
-          .getBlockHardness(null,
-              null)))));
+          .getBlockHardness(null, null)))));
 
     super.addInformation(stack, worldIn, tooltip, flagIn);
   }
