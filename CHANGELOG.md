@@ -1,3 +1,8 @@
+**Version: 1.0.5 (Release)**
+
+* Make the dynamic texture picker a bit smarter.
+
+-------------------------------------------------------------------
 **Version: 1.0.4 (Release)**
 
 * Generate Textures as late as possible.
