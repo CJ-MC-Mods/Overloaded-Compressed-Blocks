@@ -15,7 +15,9 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.IPackFinder;
+import net.minecraft.resources.ResourcePackInfo;
+import net.minecraft.resources.ResourcePackList;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
@@ -49,7 +51,7 @@ public class CompressedBlocks {
     for (CompressedEntry entry : CompressedConfig.getCompressedEntries()) {
       int index = entry.baseRegistryName.indexOf(':');
 
-      if(index != -1) {
+      if (index != -1) {
         modids.add(entry.baseRegistryName.substring(0, index).replaceAll("[^a-z0-9/._-]", ""));
       }
     }
@@ -57,8 +59,8 @@ public class CompressedBlocks {
     IModInfo owner = ModLoadingContext.get().getActiveContainer().getModInfo();
     List<IModInfo.ModVersion> dependencies = owner.getDependencies();
 
-    modids.removeAll(dependencies.stream().map(d->d.getModId()).collect(Collectors.toList()));
-    for(String modid : modids) {
+    modids.removeAll(dependencies.stream().map(d -> d.getModId()).collect(Collectors.toList()));
+    for (String modid : modids) {
       Map<String, Object> data = new HashMap<>();
       data.put("modId", modid);
       data.put("mandatory", false);
@@ -69,7 +71,14 @@ public class CompressedBlocks {
   }
 
   public void serverAboutToStartEvent(FMLServerAboutToStartEvent event) {
-    BlockResourcePack.INSTANCE.inject(event.getServer().getResourceManager());
+    ResourcePackList<ResourcePackInfo> list = event.getServer().resourcePacks;
+    list.addPackFinder(new IPackFinder() {
+      @Override
+      public <T extends ResourcePackInfo> void addPackInfosToMap(Map<String, T> nameToPackMap, ResourcePackInfo.IFactory<T> packInfoFactory) {
+        T pack = ResourcePackInfo.createResourcePack("overloaded_cb_injected", false, () -> BlockResourcePack.INSTANCE, packInfoFactory, ResourcePackInfo.Priority.BOTTOM);
+        nameToPackMap.put("overloaded_cb_injected", pack);
+      }
+    });
   }
 
   public static final ItemGroup ITEM_GROUP = new ItemGroup("Overloaded_Compressed_Blocks") {
@@ -85,8 +94,7 @@ public class CompressedBlocks {
 
     @SubscribeEvent
     public static void onBlocksRegistry(final RegistryEvent.Register<Block> blockRegistryEvent) {
-      DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> BlockResourcePack.INSTANCE.inject(Minecraft.getInstance()
-          .getResourceManager()));
+      DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> BlockResourcePack.INSTANCE.inject(Minecraft.getInstance().getResourceManager()));
       blocks = CompressedBlockHandler.initFromConfig();
       IForgeRegistry<Block> registry = blockRegistryEvent.getRegistry();
 

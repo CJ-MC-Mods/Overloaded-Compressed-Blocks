@@ -4,6 +4,7 @@ import com.cjm721.overloaded.cb.CompressedBlocks;
 import com.cjm721.overloaded.cb.config.ClientConfig;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
 import net.minecraft.profiler.IProfiler;
 import net.minecraft.resources.*;
@@ -121,7 +122,10 @@ public class BlockResourcePack implements IResourcePack {
   @Nullable
   @Override
   public <T> T getMetadata(@Nonnull IMetadataSectionSerializer<T> deserializer) throws IOException {
-    return null;
+    JsonObject packData = new JsonObject();
+    packData.addProperty("pack_format", 4);
+    packData.addProperty("description", "Overloaded Compressed Assets");
+    return deserializer.deserialize(packData);
   }
 
   @Override
@@ -140,9 +144,9 @@ public class BlockResourcePack implements IResourcePack {
     IResourceManager manager = Minecraft.getInstance().getResourceManager();
     String fileName = locations.baseBlock.getPath() + ".png";
 
-    if(locations.baseTexture != null) {
+    if (locations.baseTexture != null) {
       ResourceLocation forceTexture = new ResourceLocation(locations.baseTexture);
-      if(manager.hasResource(forceTexture)) {
+      if (manager.hasResource(forceTexture)) {
         return forceTexture;
       } else {
         CompressedBlocks.LOGGER.warn("Unable to find texture from config: " + locations.baseTexture);
@@ -152,25 +156,25 @@ public class BlockResourcePack implements IResourcePack {
 
     ResourceLocation vanillaPattern =
         new ResourceLocation(locations.baseBlock.getNamespace(), "textures/block/" + fileName);
-    if(manager.hasResource(vanillaPattern)) {
+    if (manager.hasResource(vanillaPattern)) {
       return vanillaPattern;
     }
 
     ResourceLocation oldPattern =
         new ResourceLocation(locations.baseBlock.getNamespace(), "textures/blocks/" + fileName);
-    if(manager.hasResource(oldPattern)) {
+    if (manager.hasResource(oldPattern)) {
       return oldPattern;
     }
 
     ResourceLocation baseDirectory =
         new ResourceLocation(locations.baseBlock.getNamespace(), "textures/" + fileName);
-    if(manager.hasResource(baseDirectory)) {
+    if (manager.hasResource(baseDirectory)) {
       return baseDirectory;
     }
 
     Collection<ResourceLocation> lastChance = manager.getAllResourceLocations("textures/", l -> l.endsWith(fileName));
 
-    if(!lastChance.isEmpty()) {
+    if (!lastChance.isEmpty()) {
       return lastChance.iterator().next();
     }
 
@@ -185,7 +189,7 @@ public class BlockResourcePack implements IResourcePack {
       image = ImageIO.read(ImageUtil.getTextureInputStream(toLoad));
     } catch (IOException e) {
       LOGGER.warn("Unable to load texture: " + toLoad, e);
-      return new BufferedImage(1,1, TYPE_INT_RGB);
+      return new BufferedImage(1, 1, TYPE_INT_RGB);
     }
 
     int scale = locations.compressionAmount + 1;

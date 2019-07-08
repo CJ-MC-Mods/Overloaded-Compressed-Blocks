@@ -1,5 +1,11 @@
+**Version: 1.0.6 (Release)**
+
+* Fix breaking data-packs. (Fix #4)
+
+-------------------------------------------------------------------
 **Version: 1.0.5 (Release)**
 
+*After release update - This version is broken*
 * Make the dynamic texture picker a bit smarter.
 
 -------------------------------------------------------------------
