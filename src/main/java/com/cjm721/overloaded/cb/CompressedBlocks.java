@@ -18,6 +18,7 @@ import net.minecraft.item.Items;
 import net.minecraft.resources.IPackFinder;
 import net.minecraft.resources.ResourcePackInfo;
 import net.minecraft.resources.ResourcePackList;
+import net.minecraft.util.NonNullList;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
@@ -86,6 +87,14 @@ public class CompressedBlocks {
     public ItemStack createIcon() {
       return new ItemStack(Items.COBBLESTONE);
     }
+
+    @Override
+    public void fill(NonNullList<ItemStack> items) {
+      super.fill(items);
+
+      items.sort(Comparator.<ItemStack, String>comparing(o -> ((CompressedBlockItem) o.getItem()).getCompressedBlock().getBaseBlock().getRegistryName().toString())
+          .thenComparing(o -> ((CompressedBlockItem) o.getItem()).getCompressedBlock().getCompressionLevel()));
+    }
   };
 
   @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -98,6 +107,7 @@ public class CompressedBlocks {
       blocks = CompressedBlockHandler.initFromConfig();
       IForgeRegistry<Block> registry = blockRegistryEvent.getRegistry();
 
+      LOGGER.info(String.format("Registering %d compressed blocks", blocks.size()));
       for (BlockCompressed block : blocks) {
         registry.register(block);
         DistExecutor.runWhenOn(Dist.CLIENT, () -> () ->

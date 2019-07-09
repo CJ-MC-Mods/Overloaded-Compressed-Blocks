@@ -74,11 +74,11 @@ public class BlockCompressed extends Block {
             compressionLevel));
   }
 
-  Block getBaseBlock() {
+  public Block getBaseBlock() {
     return baseBlock;
   }
 
-  int getCompressionLevel() {
+  public int getCompressionLevel() {
     return compressionLevel;
   }
 
