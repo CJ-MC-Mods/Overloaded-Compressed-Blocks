@@ -1,3 +1,9 @@
+**Version: 1.0.7 (Release)**
+
+* Sort Creative / JEI menu for items by Mod-Base Name-Compression Amount
+* New Setting for force loading early (early loading is multi-threaded)
+
+-------------------------------------------------------------------
 **Version: 1.0.6 (Release)**
 
 * Fix breaking data-packs. (Fix #4)

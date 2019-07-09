@@ -1,6 +1,9 @@
 package com.cjm721.overloaded.cb.resources;
 
+import com.cjm721.overloaded.cb.CompressedBlocks;
 import com.cjm721.overloaded.cb.config.ClientConfig;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.TextureStitchEvent;
@@ -13,10 +16,12 @@ import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static com.cjm721.overloaded.cb.CompressedBlocks.LOGGER;
 import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
+import static java.awt.image.BufferedImage.TYPE_INT_RGB;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class CompressedBlockAssets {
@@ -162,6 +167,10 @@ public class CompressedBlockAssets {
       ResourceLocation rl = getTexturePath(locations.compressed);
       BlockResourcePack.INSTANCE.addImage(modifyPath(rl, "textures/", ".png"), locations);
       event.addSprite(getTexturePath(locations.compressed));
+    }
+
+    if(!ClientConfig.INSTANCE.generateTexturesLazy.get()) {
+      BlockResourcePack.INSTANCE.forceGenerateTextures();
     }
   }
 

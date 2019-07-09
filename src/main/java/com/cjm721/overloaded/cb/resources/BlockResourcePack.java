@@ -17,6 +17,8 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.*;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -28,22 +30,32 @@ import static com.cjm721.overloaded.cb.CompressedBlocks.LOGGER;
 import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
 import static java.awt.image.BufferedImage.TYPE_INT_RGB;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 public class BlockResourcePack implements IResourcePack {
 
   public static final BlockResourcePack INSTANCE = new BlockResourcePack();
+  private static final ResourceLocation MISSING_TEXTURE = new ResourceLocation(MODID, "textures/missing.png");
 
   private BlockResourcePack() {
     this.domains.add(MODID);
   }
 
   private final Map<ResourceLocation, CompressedBlockAssets.CompressedResourceLocation> images = Maps.newHashMap();
+  final Map<ResourceLocation, BufferedImage> imagesCache = Maps.newHashMap();
   private final Map<ResourceLocation, String> resource = Maps.newHashMap();
 
   private final Set<String> domains = Sets.newHashSet();
 
   public void addImage(@Nonnull ResourceLocation res, @Nonnull CompressedBlockAssets.CompressedResourceLocation image) {
     images.put(res, image);
+  }
+
+  void forceGenerateTextures() {
+    LOGGER.info("Force Texture Generation Started");
+    Instant start = Instant.now();
+    imagesCache.putAll(images.entrySet().parallelStream().collect(toMap(entry -> entry.getKey(), entry -> generateTexture(entry.getValue()))));
+    LOGGER.info("Force Texture Generation Ended. Number of Textures: " + imagesCache.size() + " Time taken in seconds: " + ChronoUnit.SECONDS.between(start,Instant.now()));
   }
 
   public void addResouce(ResourceLocation res, String state) {
@@ -98,13 +110,21 @@ public class BlockResourcePack implements IResourcePack {
   }
 
   private InputStream getImageInputStream(@Nonnull ResourceLocation location) throws IOException {
-    BufferedImage image = generateTexture(images.get(location));
-    if (image != null) {
-      ByteArrayOutputStream os = new ByteArrayOutputStream();
-      ImageIO.write(image, "png", os);
-      return new ByteArrayInputStream(os.toByteArray());
+    BufferedImage image;
+    if (imagesCache.containsKey(location)) {
+      image = imagesCache.get(location);
+    } else {
+      image = generateTexture(images.get(location));
     }
-    System.err.println("Not Found: " + location.toString());
+
+    if (image != null) {
+      imagesCache.put(location, image);
+      try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+        ImageIO.write(image, "png", os);
+        return new ByteArrayInputStream(os.toByteArray());
+      }
+    }
+    LOGGER.warn("Not Found: " + location.toString());
     throw new FileNotFoundException(location.toString());
   }
 
@@ -137,8 +157,6 @@ public class BlockResourcePack implements IResourcePack {
   @Override
   public void close() throws IOException {
   }
-
-  private static final ResourceLocation MISSING_TEXTURE = new ResourceLocation(MODID, "textures/missing.png");
 
   private static ResourceLocation findTexture(@Nonnull CompressedBlockAssets.CompressedResourceLocation locations) {
     IResourceManager manager = Minecraft.getInstance().getResourceManager();
@@ -181,9 +199,10 @@ public class BlockResourcePack implements IResourcePack {
     return MISSING_TEXTURE;
   }
 
-  private static BufferedImage generateTexture(@Nonnull CompressedBlockAssets.CompressedResourceLocation locations) {
-    BufferedImage image;
+  static BufferedImage generateTexture(@Nonnull CompressedBlockAssets.CompressedResourceLocation locations) {
+    LOGGER.debug("Generating Texture for: " + locations.compressed);
 
+    BufferedImage image;
     ResourceLocation toLoad = findTexture(locations);
     try {
       image = ImageIO.read(ImageUtil.getTextureInputStream(toLoad));

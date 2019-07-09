@@ -26,13 +26,17 @@ public class ClientConfig {
     ConfigTracker.INSTANCE.loadConfigs(ModConfig.Type.CLIENT, FMLPaths.CONFIGDIR.get());
   }
 
-  public ForgeConfigSpec.BooleanValue showHardness;
-  public ForgeConfigSpec.IntValue maxTextureWidth;
+  public final ForgeConfigSpec.BooleanValue showHardness;
+  public final ForgeConfigSpec.IntValue maxTextureWidth;
+  public final ForgeConfigSpec.BooleanValue generateTexturesLazy;
 
   ClientConfig(ForgeConfigSpec.Builder builder) {
     maxTextureWidth = builder.comment("The max width of a single tiled texture.").defineInRange("maxTextureWidth", 256,
         1,
         Integer.MAX_VALUE);
+
+    generateTexturesLazy = builder.comment("Build textures only when the texture is requested. This disables multithreaded generation.").define("generateTexturesLazy", false);
+
     showHardness = builder.comment("Should hardness be shown on the tooltip").define("showHardness", true);
   }
 }
