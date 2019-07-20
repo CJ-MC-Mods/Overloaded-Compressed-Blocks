@@ -1,3 +1,8 @@
+**Version: 1.0.8 (Release)**
+
+* Updated to Minecraft 1.14.4
+
+-------------------------------------------------------------------
 **Version: 1.0.7 (Release)**
 
 * Sort Creative / JEI menu for items by Mod-Base Name-Compression Amount
