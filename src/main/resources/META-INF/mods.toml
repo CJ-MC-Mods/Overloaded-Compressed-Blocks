@@ -1,6 +1,6 @@
 # Find more information on toml format here:  https://github.com/toml-lang/toml
 modLoader="javafml" #mandatory
-loaderVersion="[27,)" #mandatory (24 is current forge version)
+loaderVersion="[30,)" #mandatory (24 is current forge version)
 issueTrackerURL="https://github.com/CJ-MC-Mods/Overloaded/issues" #optional
 [[mods]] #mandatory
 modId="overloaded_cb" #mandatory
@@ -15,6 +15,6 @@ Allows creation of compressed blocks for any other blocks (this includes other m
 [[dependencies.overloaded_cb]] #optional
     modId="forge" #mandatory
     mandatory=true #mandatory
-    versionRange="[27,)" #mandatory
+    versionRange="[30,)" #mandatory
     ordering="NONE"
     side="BOTH"

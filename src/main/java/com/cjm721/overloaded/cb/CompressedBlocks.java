@@ -32,6 +32,7 @@ import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -103,7 +104,13 @@ public class CompressedBlocks {
 
     @SubscribeEvent
     public static void onBlocksRegistry(final RegistryEvent.Register<Block> blockRegistryEvent) {
-      DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> BlockResourcePack.INSTANCE.inject(Minecraft.getInstance().getResourceManager()));
+      DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
+        try {
+          BlockResourcePack.INSTANCE.inject(Minecraft.getInstance().getResourceManager());
+        } catch (InvocationTargetException | IllegalAccessException e) {
+          throw new IllegalStateException(e);
+        }
+      });
       blocks = CompressedBlockHandler.initFromConfig();
       IForgeRegistry<Block> registry = blockRegistryEvent.getRegistry();
 

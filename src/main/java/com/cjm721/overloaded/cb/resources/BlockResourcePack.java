@@ -10,6 +10,7 @@ import net.minecraft.profiler.IProfiler;
 import net.minecraft.resources.*;
 import net.minecraft.resources.data.IMetadataSectionSerializer;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -17,6 +18,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -62,13 +64,18 @@ public class BlockResourcePack implements IResourcePack {
     resource.put(res, state);
   }
 
-  public final void inject(IResourceManager manager) {
-    manager.addResourcePack(this);
+  public final void inject(IResourceManager manager) throws InvocationTargetException, IllegalAccessException {
+    ObfuscationReflectionHelper.findMethod(manager.getClass(), "func_199021_a", IResourcePack.class).invoke(manager, this);
     if (manager instanceof IReloadableResourceManager) {
       ((IReloadableResourceManager) manager).addReloadListener(new IFutureReloadListener() {
         @Override
+        @Nonnull
         public CompletableFuture<Void> reload(IStage iStage, IResourceManager iResourceManager, IProfiler iProfiler, IProfiler iProfiler1, Executor executor, Executor executor1) {
-          iResourceManager.addResourcePack(BlockResourcePack.this);
+          try {
+            ObfuscationReflectionHelper.findMethod(manager.getClass(), "func_199021_a", IResourcePack.class).invoke(manager, BlockResourcePack.this);
+          } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+          }
           return iStage.markCompleteAwaitingOthers(null);
         }
       });
@@ -78,7 +85,7 @@ public class BlockResourcePack implements IResourcePack {
   @Override
   @Nonnull
   public InputStream getRootResourceStream(@Nonnull String fileName) throws IOException {
-    return null;
+    return new ByteArrayInputStream(new byte[0]);
   }
 
   @Override
@@ -101,9 +108,9 @@ public class BlockResourcePack implements IResourcePack {
 
   @Override
   @Nonnull
-  public Collection<ResourceLocation> getAllResourceLocations(@Nonnull ResourcePackType type, @Nonnull String pathIn,
+  public Collection<ResourceLocation> func_225637_a_(@Nonnull ResourcePackType type, @Nonnull String pathIn, @Nonnull String IDK,
                                                               int maxDepth, @Nonnull Predicate<String> filter) {
-    return resource.entrySet().stream().filter(e -> e.getKey().getPath().startsWith(pathIn)).map(e -> new
+    return resource.entrySet().stream().filter(e -> e.getKey().getPath().startsWith(IDK)).map(e -> new
         ResourceLocation
         (e.getKey().getNamespace(), e.getKey().getPath()))
         .collect(toList());

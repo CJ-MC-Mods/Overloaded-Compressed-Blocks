@@ -159,7 +159,7 @@ public class CompressedBlockAssets {
 
   @SubscribeEvent
   public static void texturePre(TextureStitchEvent.Pre event) {
-    if (!event.getMap().getBasePath().equals("textures")) {
+    if (!event.getMap().func_229223_g_().toString().equals("minecraft:textures/atlas/blocks.png")) {
       return;
     }
 

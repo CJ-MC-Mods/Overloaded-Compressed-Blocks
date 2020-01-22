@@ -1,3 +1,8 @@
+**Version: 1.0.9 (Release)**
+
+* Use Obfuscated name instead of mapped as something is not transferring correcting when run outside dev environments.
+
+-------------------------------------------------------------------
 **Version: 1.0.8 (Release)**
 
 * Updated to Minecraft 1.14.4
