@@ -3,6 +3,7 @@ package com.cjm721.overloaded.cb.resources;
 import com.cjm721.overloaded.cb.CompressedBlocks;
 import com.cjm721.overloaded.cb.config.ClientConfig;
 import net.minecraft.client.Minecraft;
+import net.minecraft.data.ShapelessRecipeBuilder;
 import net.minecraft.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
@@ -90,6 +91,7 @@ public class CompressedBlockAssets {
   }
 
   private static String getDeCompressionRecipe(ResourceLocation input, ResourceLocation result) {
+    ShapelessRecipeBuilder.shapelessRecipe().build();
     return String.format("{\n" +
         "  \"type\": \"minecraft:crafting_shapeless\",\n" +
         "  \"ingredients\": [\n" +
@@ -159,7 +161,7 @@ public class CompressedBlockAssets {
 
   @SubscribeEvent
   public static void texturePre(TextureStitchEvent.Pre event) {
-    if (!event.getMap().func_229223_g_().toString().equals("minecraft:textures/atlas/blocks.png")) {
+    if (!event.getMap().getTextureLocation().getPath().equals("textures/atlas/blocks.png")) {
       return;
     }
 

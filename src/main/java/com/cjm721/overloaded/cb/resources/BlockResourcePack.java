@@ -107,10 +107,8 @@ public class BlockResourcePack implements IResourcePack {
   }
 
   @Override
-  @Nonnull
-  public Collection<ResourceLocation> func_225637_a_(@Nonnull ResourcePackType type, @Nonnull String pathIn, @Nonnull String IDK,
-                                                              int maxDepth, @Nonnull Predicate<String> filter) {
-    return resource.entrySet().stream().filter(e -> e.getKey().getPath().startsWith(IDK)).map(e -> new
+  public Collection<ResourceLocation> getAllResourceLocations(ResourcePackType type, String namespaceIn, String pathIn, int maxDepth, Predicate<String> filter) {
+    return resource.entrySet().stream().filter(e -> e.getKey().getPath().startsWith(pathIn)).map(e -> new
         ResourceLocation
         (e.getKey().getNamespace(), e.getKey().getPath()))
         .collect(toList());
