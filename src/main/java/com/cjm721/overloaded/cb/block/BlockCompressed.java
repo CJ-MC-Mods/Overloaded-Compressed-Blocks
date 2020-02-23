@@ -19,11 +19,22 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.List;
 
 import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
 
 public class BlockCompressed extends Block {
+
+  private static final DecimalFormat numberFormat;
+
+  static {
+    numberFormat = new DecimalFormat("#,###");
+    numberFormat.setRoundingMode(RoundingMode.HALF_DOWN);
+    numberFormat.setMaximumFractionDigits(0);
+  }
 
   private Block baseBlock;
   private final int compressionLevel;
@@ -58,7 +69,7 @@ public class BlockCompressed extends Block {
   @Override
   public void addInformation(ItemStack stack, @Nullable IBlockReader worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
     if (ClientConfig.INSTANCE.showHardness.get())
-      tooltip.add(new StringTextComponent(String.format("Hardness: %,d", Math.round((double) ((BlockItem) stack.getItem())
+      tooltip.add(new StringTextComponent(String.format("Hardness: %s",numberFormat.format(((BlockItem) stack.getItem())
           .getBlock()
           .getDefaultState()
           .getBlockHardness(null, null)))));

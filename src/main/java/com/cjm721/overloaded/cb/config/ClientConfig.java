@@ -28,15 +28,16 @@ public class ClientConfig {
 
   public final ForgeConfigSpec.BooleanValue showHardness;
   public final ForgeConfigSpec.IntValue maxTextureWidth;
-  public final ForgeConfigSpec.BooleanValue generateTexturesLazy;
+  public final ForgeConfigSpec.IntValue threadsToKeepFree;
 
   ClientConfig(ForgeConfigSpec.Builder builder) {
     maxTextureWidth = builder.comment("The max width of a single tiled texture.").defineInRange("maxTextureWidth", 256,
         1,
         Integer.MAX_VALUE);
 
-    generateTexturesLazy = builder.comment("Build textures only when the texture is requested. This disables multithreaded generation.").define("generateTexturesLazy", false);
-
     showHardness = builder.comment("Should hardness be shown on the tooltip").define("showHardness", true);
+
+    threadsToKeepFree = builder.comment("How many system threads to keep free when generating textures. Smaller values mean faster generation but can cause 100% CPU utilization. Will always use at least 1 thread").defineInRange("threadsToKeepFree", 2,0, Integer.MAX_VALUE);
+
   }
 }

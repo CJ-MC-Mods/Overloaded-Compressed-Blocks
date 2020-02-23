@@ -11,6 +11,7 @@ import net.minecraft.resources.*;
 import net.minecraft.resources.data.IMetadataSectionSerializer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import org.lwjgl.system.MathUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,18 +22,20 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Predicate;
 
 import static com.cjm721.overloaded.cb.CompressedBlocks.LOGGER;
 import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
 import static java.awt.image.BufferedImage.TYPE_INT_RGB;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.*;
 
 public class BlockResourcePack implements IResourcePack {
 
@@ -43,9 +46,11 @@ public class BlockResourcePack implements IResourcePack {
     this.domains.add(MODID);
   }
 
-  private final Map<ResourceLocation, CompressedBlockAssets.CompressedResourceLocation> images = Maps.newHashMap();
-  final Map<ResourceLocation, BufferedImage> imagesCache = Maps.newHashMap();
-  private final Map<ResourceLocation, String> resource = Maps.newHashMap();
+  private final Map<ResourceLocation, CompressedBlockAssets.CompressedResourceLocation> images = Maps.newConcurrentMap();
+  private final Map<ResourceLocation, String> resource = Maps.newConcurrentMap();
+
+  private Map<ResourceLocation, TextureEntry> imagesCache = Maps.newConcurrentMap();
+  private Map<ResourceLocation, TextureEntry> oldImageCache = Maps.newConcurrentMap();
 
   private final Set<String> domains = Sets.newHashSet();
 
@@ -56,8 +61,16 @@ public class BlockResourcePack implements IResourcePack {
   void forceGenerateTextures() {
     LOGGER.info("Force Texture Generation Started");
     Instant start = Instant.now();
-    imagesCache.putAll(images.entrySet().parallelStream().collect(toMap(entry -> entry.getKey(), entry -> generateTexture(entry.getValue()))));
-    LOGGER.info("Force Texture Generation Ended. Number of Textures: " + imagesCache.size() + " Time taken in seconds: " + ChronoUnit.SECONDS.between(start,Instant.now()));
+    try {
+      int poolSize = Math.min(Runtime.getRuntime().availableProcessors(), Math.max(1, Runtime.getRuntime().availableProcessors() - ClientConfig.INSTANCE.threadsToKeepFree.get()));
+      imagesCache = new ForkJoinPool(poolSize).submit(() ->
+          images.entrySet().parallelStream().map(entry -> generateTexture(entry.getKey(), entry.getValue()))
+              .collect(toConcurrentMap(entry -> entry.location, entry -> entry))).get();
+    } catch (Exception e) {
+      LOGGER.error("Failed to generate textures", e);
+      throw new RuntimeException(e);
+    }
+    LOGGER.info("Force Texture Generation Ended. Number of Textures: " + imagesCache.size() + " Time taken in seconds: " + ChronoUnit.SECONDS.between(start, Instant.now()));
   }
 
   public void addResouce(ResourceLocation res, String state) {
@@ -71,6 +84,7 @@ public class BlockResourcePack implements IResourcePack {
         @Override
         @Nonnull
         public CompletableFuture<Void> reload(IStage iStage, IResourceManager iResourceManager, IProfiler iProfiler, IProfiler iProfiler1, Executor executor, Executor executor1) {
+          BlockResourcePack.INSTANCE.reload();
           try {
             ObfuscationReflectionHelper.findMethod(manager.getClass(), "func_199021_a", IResourcePack.class).invoke(manager, BlockResourcePack.this);
           } catch (IllegalAccessException | InvocationTargetException e) {
@@ -107,29 +121,27 @@ public class BlockResourcePack implements IResourcePack {
   }
 
   @Override
-  public Collection<ResourceLocation> getAllResourceLocations(ResourcePackType type, String namespaceIn, String pathIn, int maxDepth, Predicate<String> filter) {
-    return resource.entrySet().stream().filter(e -> e.getKey().getPath().startsWith(pathIn)).map(e -> new
+  @Nonnull
+  public Collection<ResourceLocation> getAllResourceLocations(@Nonnull ResourcePackType type, @Nonnull String nameSpace, @Nonnull String path,
+                                                              int maxDepth, @Nonnull Predicate<String> filter) {
+    return resource.entrySet().stream().filter(e -> e.getKey().getPath().startsWith(path)).map(e -> new
         ResourceLocation
         (e.getKey().getNamespace(), e.getKey().getPath()))
         .collect(toList());
   }
 
   private InputStream getImageInputStream(@Nonnull ResourceLocation location) throws IOException {
-    BufferedImage image;
+    TextureEntry image;
     if (imagesCache.containsKey(location)) {
       image = imagesCache.get(location);
-    } else {
-      image = generateTexture(images.get(location));
-    }
 
-    if (image != null) {
-      imagesCache.put(location, image);
       try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-        ImageIO.write(image, "png", os);
+        ImageIO.write(image.image, "png", os);
         return new ByteArrayInputStream(os.toByteArray());
       }
     }
-    LOGGER.warn("Not Found: " + location.toString());
+
+    LOGGER.warn("Compressed Entry Not Found: " + location.toString());
     throw new FileNotFoundException(location.toString());
   }
 
@@ -161,6 +173,11 @@ public class BlockResourcePack implements IResourcePack {
 
   @Override
   public void close() throws IOException {
+  }
+
+  public void reload() {
+    oldImageCache = imagesCache;
+    imagesCache = Maps.newConcurrentMap();
   }
 
   private static ResourceLocation findTexture(@Nonnull CompressedBlockAssets.CompressedResourceLocation locations) {
@@ -204,37 +221,78 @@ public class BlockResourcePack implements IResourcePack {
     return MISSING_TEXTURE;
   }
 
-  static BufferedImage generateTexture(@Nonnull CompressedBlockAssets.CompressedResourceLocation locations) {
-    LOGGER.debug("Generating Texture for: " + locations.compressed);
-
-    BufferedImage image;
-    ResourceLocation toLoad = findTexture(locations);
+  TextureEntry generateTexture(ResourceLocation key, @Nonnull CompressedBlockAssets.CompressedResourceLocation locations) {
     try {
-      image = ImageIO.read(ImageUtil.getTextureInputStream(toLoad));
-    } catch (IOException e) {
-      LOGGER.warn("Unable to load texture: " + toLoad, e);
-      return new BufferedImage(1, 1, TYPE_INT_RGB);
-    }
+      LOGGER.debug("Generating Texture for: " + locations.compressed);
 
-    int scale = locations.compressionAmount + 1;
-
-    int squareSize = Math.min(image.getWidth(), image.getHeight());
-
-    WritableRaster raster = image.getColorModel().createCompatibleWritableRaster(squareSize * scale, squareSize * scale);
-
-    int[] pixels = image.getData().getPixels(0, 0, squareSize, squareSize, (int[]) null);
-
-    for (int x = 0; x < scale; x++) {
-      for (int y = 0; y < scale; y++) {
-        raster.setPixels(x * squareSize, y * squareSize, squareSize, squareSize, pixels);
+      BufferedImage image;
+      ResourceLocation toLoad = findTexture(locations);
+      try {
+        image = ImageIO.read(ImageUtil.getTextureInputStream(toLoad));
+      } catch (IOException e) {
+        LOGGER.warn("Unable to load texture: " + toLoad, e);
+        return new TextureEntry(null, key, new BufferedImage(1, 1, TYPE_INT_RGB));
       }
-    }
 
-    BufferedImage compressedImage = new BufferedImage(image.getColorModel(), raster, false, null);
+      int[] pixels = getPixelsForImage(image);
 
-    if (compressedImage.getWidth() > ClientConfig.INSTANCE.maxTextureWidth.get()) {
-      compressedImage = ImageUtil.scaleDownToWidth(compressedImage, ClientConfig.INSTANCE.maxTextureWidth.get());
+      if (oldImageCache.containsKey(key)) {
+        TextureEntry entry = oldImageCache.get(key);
+        int[] oldPixels = entry.baseImage == null ? new int[0] : getPixelsForImage(entry.baseImage);
+
+        if (Arrays.equals(pixels, oldPixels)) {
+          LOGGER.debug("Using Cached Texture for: " + locations.compressed);
+          return entry;
+        }
+      }
+
+      int scale = locations.compressionAmount + 1;
+      int squareSize = Math.min(image.getWidth(), image.getHeight());
+
+      BufferedImage compressedBaseImage = image;
+      if (squareSize > ClientConfig.INSTANCE.maxTextureWidth.get() / scale) {
+        compressedBaseImage = ImageUtil.scaleDownToWidth(compressedBaseImage, Math.max(ClientConfig.INSTANCE.maxTextureWidth.get() / scale, 1));
+        squareSize = Math.min(compressedBaseImage.getWidth(), compressedBaseImage.getHeight());
+        pixels = getPixelsForImage(compressedBaseImage);
+      }
+
+      BufferedImage compressedImage;
+      if(compressedBaseImage.getWidth() == 1) {
+        compressedImage = compressedBaseImage;
+      } {
+        int newSize = squareSize * scale;
+        WritableRaster raster = compressedBaseImage.getColorModel().createCompatibleWritableRaster(newSize, newSize);
+        for (int x = 0; x < scale; x++) {
+          for (int y = 0; y < scale; y++) {
+            raster.setPixels(x * squareSize, y * squareSize, squareSize, squareSize, pixels);
+          }
+        }
+
+        compressedImage = new BufferedImage(compressedBaseImage.getColorModel(), raster, false, null);
+      }
+      return new TextureEntry(image, key, compressedImage);
+
+    } catch (Exception e) {
+      LOGGER.error(String.format("Unable to generate %s texture", key), e);
+      throw new RuntimeException(e);
     }
-    return compressedImage;
+  }
+
+  private static int[] getPixelsForImage(BufferedImage image) {
+    int squareSize = Math.min(image.getWidth(), image.getHeight());
+    return image.getData().getPixels(0, 0, squareSize, squareSize, (int[]) null);
+  }
+
+  private static class TextureEntry {
+
+    final BufferedImage baseImage;
+    final BufferedImage image;
+    final ResourceLocation location;
+
+    TextureEntry(BufferedImage baseImage, ResourceLocation location, BufferedImage image) {
+      this.baseImage = baseImage;
+      this.location = location;
+      this.image = image;
+    }
   }
 }

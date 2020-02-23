@@ -1,10 +1,7 @@
 package com.cjm721.overloaded.cb.resources;
 
-import com.cjm721.overloaded.cb.CompressedBlocks;
 import com.cjm721.overloaded.cb.config.ClientConfig;
-import net.minecraft.client.Minecraft;
-import net.minecraft.data.ShapelessRecipeBuilder;
-import net.minecraft.resources.IResourceManager;
+import net.minecraft.block.Block;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.TextureStitchEvent;
@@ -12,17 +9,10 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import javax.annotation.Nonnull;
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.awt.image.WritableRaster;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-import static com.cjm721.overloaded.cb.CompressedBlocks.LOGGER;
 import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
-import static java.awt.image.BufferedImage.TYPE_INT_RGB;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class CompressedBlockAssets {
@@ -35,11 +25,11 @@ public class CompressedBlockAssets {
     generateBaseResouces(location);
   }
 
-  public static void addToRecipes(ResourceLocation unCompressed, ResourceLocation compressed) {
-    BlockResourcePack.INSTANCE.addResouce(getRecipesPath(unCompressed, "compress"), getCompressionRecipe
-        (unCompressed, compressed));
-    BlockResourcePack.INSTANCE.addResouce(getRecipesPath(compressed, "de_compress"), getDeCompressionRecipe
-        (compressed, unCompressed));
+  public static void addToRecipes(Block unCompressed, Block compressed) {
+    BlockResourcePack.INSTANCE.addResouce(getRecipesPath(unCompressed.getRegistryName(), "compress"), getCompressionRecipe
+        (unCompressed.getRegistryName(), compressed.getRegistryName()));
+    BlockResourcePack.INSTANCE.addResouce(getRecipesPath(compressed.getRegistryName(), "de_compress"), getDeCompressionRecipe
+        (compressed.getRegistryName(), unCompressed.getRegistryName()));
   }
 
   public static void addToDropLootTable(ResourceLocation block) {
@@ -91,7 +81,6 @@ public class CompressedBlockAssets {
   }
 
   private static String getDeCompressionRecipe(ResourceLocation input, ResourceLocation result) {
-    ShapelessRecipeBuilder.shapelessRecipe().build();
     return String.format("{\n" +
         "  \"type\": \"minecraft:crafting_shapeless\",\n" +
         "  \"ingredients\": [\n" +
@@ -171,9 +160,7 @@ public class CompressedBlockAssets {
       event.addSprite(getTexturePath(locations.compressed));
     }
 
-    if(!ClientConfig.INSTANCE.generateTexturesLazy.get()) {
-      BlockResourcePack.INSTANCE.forceGenerateTextures();
-    }
+    BlockResourcePack.INSTANCE.forceGenerateTextures();
   }
 
   @SubscribeEvent

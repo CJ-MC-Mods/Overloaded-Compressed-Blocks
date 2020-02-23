@@ -1,3 +1,17 @@
+**Version: 1.0.11 (Release)**
+
+* Removed Force Generate config option and always do it now.
+* Better caching for when texture-reloads happen not all images need to be generated
+* Reduced memory load and now able to handle much larger base textures
+* Hardness Tooltip reports the correct hardness for high density blocks
+* Config option for level of texture generation parallelization 
+
+-------------------------------------------------------------------
+**Version: 1.0.10 (Release)**
+
+* Updated to 1.15.2
+
+-------------------------------------------------------------------
 **Version: 1.0.9 (Release)**
 
 * Use Obfuscated name instead of mapped as something is not transferring correcting when run outside dev environments.
