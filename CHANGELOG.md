@@ -1,3 +1,8 @@
+**Version: 1.0.12 (Release)**
+
+* Remove Config hack from 1.14 as seems to cause issues for Inventory Tweaks and no longer needed
+
+-------------------------------------------------------------------
 **Version: 1.0.11 (Release)**
 
 * Removed Force Generate config option and always do it now.

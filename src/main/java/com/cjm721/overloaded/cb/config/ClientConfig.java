@@ -1,6 +1,7 @@
 package com.cjm721.overloaded.cb.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ConfigTracker;
@@ -22,8 +23,10 @@ public class ClientConfig {
     INSTANCE = pair.getLeft();
     SPEC = pair.getRight();
 
-    ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, SPEC);
-    ConfigTracker.INSTANCE.loadConfigs(ModConfig.Type.CLIENT, FMLPaths.CONFIGDIR.get());
+    ModContainer activeContainer = ModLoadingContext.get().getActiveContainer();
+    ModConfig config = new ModConfig(ModConfig.Type.CLIENT, SPEC, activeContainer);
+
+    ModLoadingContext.get().getActiveContainer().addConfig(config);
   }
 
   public final ForgeConfigSpec.BooleanValue showHardness;
