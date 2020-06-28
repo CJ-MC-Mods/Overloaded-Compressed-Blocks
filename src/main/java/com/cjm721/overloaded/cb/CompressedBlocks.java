@@ -7,8 +7,6 @@ import com.cjm721.overloaded.cb.config.ClientConfig;
 import com.cjm721.overloaded.cb.config.CompressedConfig;
 import com.cjm721.overloaded.cb.config.CompressedEntry;
 import com.cjm721.overloaded.cb.resources.BlockResourcePack;
-import com.electronwill.nightconfig.core.Config;
-import com.electronwill.nightconfig.core.InMemoryFormat;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
@@ -16,8 +14,10 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.resources.IPackFinder;
+import net.minecraft.resources.IPackNameDecorator;
+import net.minecraft.resources.IResourcePack;
 import net.minecraft.resources.ResourcePackInfo;
-import net.minecraft.resources.ResourcePackList;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
@@ -26,17 +26,30 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;
+import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
+import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+import net.minecraftforge.fml.packs.ModFileResourcePack;
+import net.minecraftforge.forgespi.language.IModFileInfo;
 import net.minecraftforge.forgespi.language.IModInfo;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.maven.artifact.versioning.ArtifactVersion;
+import org.apache.maven.artifact.versioning.VersionRange;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
 import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
+import static net.minecraftforge.fml.ExtensionPoint.RESOURCEPACK;
 
 @Mod(MODID)
 public class CompressedBlocks {
@@ -48,6 +61,7 @@ public class CompressedBlocks {
   public CompressedBlocks() {
     ClientConfig.init();
     MinecraftForge.EVENT_BUS.addListener(this::serverAboutToStartEvent);
+    MinecraftForge.EVENT_BUS.addListener(this::serverStarting);
 
     Set<String> modids = new HashSet<>();
     for (CompressedEntry entry : CompressedConfig.getCompressedEntries()) {
@@ -59,28 +73,43 @@ public class CompressedBlocks {
     }
 
     IModInfo owner = ModLoadingContext.get().getActiveContainer().getModInfo();
-    List<IModInfo.ModVersion> dependencies = owner.getDependencies();
+    ModLoadingContext.get().registerExtensionPoint(RESOURCEPACK, () -> CompressedBlocks::extentionPoint);
+
+    // Very Unsafe cast if forge ever doesn't use their interface for interacting with the objects
+    List<IModInfo.ModVersion> dependencies = (List<IModInfo.ModVersion>) owner.getDependencies();
 
     modids.removeAll(dependencies.stream().map(d -> d.getModId()).collect(Collectors.toList()));
     for (String modid : modids) {
-      Map<String, Object> data = new HashMap<>();
-      data.put("modId", modid);
-      data.put("mandatory", false);
-      data.put("ordering", "AFTER");
-      dependencies.add(
-          new IModInfo.ModVersion(owner, Config.of(() -> data, InMemoryFormat.defaultInstance())));
+      dependencies.add(new ModVersion(owner, modid));
     }
   }
 
+  private static IResourcePack extentionPoint(Minecraft minecraft, ModFileResourcePack pack) {
+    return BlockResourcePack.INSTANCE;
+  }
+
   public void serverAboutToStartEvent(FMLServerAboutToStartEvent event) {
-    ResourcePackList<ResourcePackInfo> list = event.getServer().resourcePacks;
-    list.addPackFinder(new IPackFinder() {
+    event.getServer().getResourcePacks().addPackFinder(new IPackFinder() {
       @Override
-      public <T extends ResourcePackInfo> void addPackInfosToMap(Map<String, T> nameToPackMap, ResourcePackInfo.IFactory<T> packInfoFactory) {
-        T pack = ResourcePackInfo.createResourcePack("overloaded_cb_injected", false, () -> BlockResourcePack.INSTANCE, packInfoFactory, ResourcePackInfo.Priority.BOTTOM);
-        nameToPackMap.put("overloaded_cb_injected", pack);
+      public <T extends ResourcePackInfo> void func_230230_a_(@Nonnull Consumer<T> consumer, @Nonnull ResourcePackInfo.IFactory<T> packInfoFactory) {
+        T pack = ResourcePackInfo.createResourcePack(
+            "overloaded_cb_injected",
+            false,
+            () -> BlockResourcePack.INSTANCE,
+            packInfoFactory,
+            ResourcePackInfo.Priority.BOTTOM,
+            IPackNameDecorator.field_232625_a_);
+        consumer.accept(pack);
       }
     });
+    event.getServer().getResourcePacks().reloadPacksFromFinders();
+  }
+
+  public void serverStarting(FMLServerStartedEvent event) {
+//    Set<String> packNames = event.getServer().getResourcePacks().getEnabledPacks().stream().map(pack -> pack.getName()).collect(Collectors.toSet());
+//    if(packNames.add("overloaded_cb_injected")) {
+//      event.getServer().getResourcePacks().setEnabledPacks(packNames);
+//    }
   }
 
   public static final ItemGroup ITEM_GROUP = new ItemGroup("Overloaded_Compressed_Blocks") {
@@ -90,7 +119,7 @@ public class CompressedBlocks {
     }
 
     @Override
-    public void fill(NonNullList<ItemStack> items) {
+    public void fill(@Nonnull NonNullList<ItemStack> items) {
       super.fill(items);
 
       items.sort(Comparator.<ItemStack, String>comparing(o -> ((CompressedBlockItem) o.getItem()).getCompressedBlock().getBaseBlock().getRegistryName().toString())
@@ -129,6 +158,62 @@ public class CompressedBlocks {
       for (BlockCompressed block : blocks) {
         registry.register(new CompressedBlockItem(block));
       }
+    }
+  }
+
+  /**
+   * Pulled from Forge, Needed to prevent having to
+   */
+  private static class ModVersion implements IModInfo.ModVersion {
+    private IModInfo owner;
+    private final String modId;
+    private final VersionRange versionRange;
+    private final boolean mandatory;
+    private final IModInfo.Ordering ordering;
+    private final IModInfo.DependencySide side;
+
+    public ModVersion(IModInfo owner, String modId) {
+      this.owner = owner;
+      this.modId = modId;
+      this.mandatory = false;
+      this.versionRange = IModInfo.UNBOUNDED;
+      this.ordering = IModInfo.Ordering.AFTER;
+      this.side = IModInfo.DependencySide.BOTH;
+    }
+
+    @Override
+    public String getModId() {
+      return this.modId;
+    }
+
+    @Override
+    public VersionRange getVersionRange() {
+      return this.versionRange;
+    }
+
+    @Override
+    public boolean isMandatory() {
+      return this.mandatory;
+    }
+
+    @Override
+    public IModInfo.Ordering getOrdering() {
+      return this.ordering;
+    }
+
+    @Override
+    public IModInfo.DependencySide getSide() {
+      return this.side;
+    }
+
+    @Override
+    public void setOwner(IModInfo owner) {
+      this.owner = owner;
+    }
+
+    @Override
+    public IModInfo getOwner() {
+      return this.owner;
     }
   }
 }

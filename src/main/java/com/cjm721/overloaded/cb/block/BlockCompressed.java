@@ -3,17 +3,15 @@ package com.cjm721.overloaded.cb.block;
 import com.cjm721.overloaded.cb.config.ClientConfig;
 import com.cjm721.overloaded.cb.config.CompressedEntry;
 import com.cjm721.overloaded.cb.resources.CompressedBlockAssets;
-import com.google.common.collect.Lists;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.state.StateContainer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.IBlockReader;
-import net.minecraft.world.storage.loot.LootContext;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -21,12 +19,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.List;
 
 import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
 
 public class BlockCompressed extends Block {
+
+  private static Block currentConstructionBaseBlock;
 
   private static final DecimalFormat numberFormat;
 
@@ -44,8 +43,10 @@ public class BlockCompressed extends Block {
   private Block unCompressed;
 
   BlockCompressed(@Nonnull String registryName, Block baseBlock, CompressedEntry entry, int compressionLevel) {
-    super(Properties.from(baseBlock).hardnessAndResistance((float) Math.min(baseBlock.getDefaultState().getBlockHardness(null,
-        null) * Math.pow(entry.hardnessMultiplier, compressionLevel), Float.MAX_VALUE)));
+    super(Properties.from(recordBaseBlock(baseBlock))
+        .hardnessAndResistance((float) Math.min(
+            baseBlock.getDefaultState().getBlockHardness(null, null) *
+                Math.pow(entry.hardnessMultiplier, compressionLevel), Float.MAX_VALUE)));
 
     setRegistryName(MODID, registryName + "_" + compressionLevel);
     this.baseBlock = baseBlock;
@@ -54,22 +55,25 @@ public class BlockCompressed extends Block {
     this.compressionLevel = compressionLevel;
   }
 
-  @Nullable
-  @Override
-  public net.minecraftforge.common.ToolType getHarvestTool(BlockState state) {
-    return baseBlock.getHarvestTool(baseBlock.getDefaultState());
+  private static Block recordBaseBlock(Block baseBlock) {
+    currentConstructionBaseBlock = baseBlock;
+    return baseBlock;
   }
 
   @Override
-  public int getHarvestLevel(BlockState state) {
-    return baseBlock.getHarvestLevel(baseBlock.getDefaultState());
+  public void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+    if (baseBlock == null) {
+      currentConstructionBaseBlock.fillStateContainer(builder);
+    } else {
+      baseBlock.fillStateContainer(builder);
+    }
   }
 
   @OnlyIn(Dist.CLIENT)
   @Override
-  public void addInformation(ItemStack stack, @Nullable IBlockReader worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
+  public void addInformation(ItemStack stack, @Nullable IBlockReader worldIn, @Nonnull List<ITextComponent> tooltip, @Nonnull ITooltipFlag flagIn) {
     if (ClientConfig.INSTANCE.showHardness.get())
-      tooltip.add(new StringTextComponent(String.format("Hardness: %s",numberFormat.format(((BlockItem) stack.getItem())
+      tooltip.add(new StringTextComponent(String.format("Hardness: %s", numberFormat.format(((BlockItem) stack.getItem())
           .getBlock()
           .getDefaultState()
           .getBlockHardness(null, null)))));

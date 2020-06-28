@@ -11,7 +11,6 @@ import net.minecraft.resources.*;
 import net.minecraft.resources.data.IMetadataSectionSerializer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
-import org.lwjgl.system.MathUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,7 +26,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Predicate;
@@ -172,7 +170,7 @@ public class BlockResourcePack implements IResourcePack {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
   }
 
   public void reload() {
@@ -283,16 +281,4 @@ public class BlockResourcePack implements IResourcePack {
     return image.getData().getPixels(0, 0, squareSize, squareSize, (int[]) null);
   }
 
-  private static class TextureEntry {
-
-    final BufferedImage baseImage;
-    final BufferedImage image;
-    final ResourceLocation location;
-
-    TextureEntry(BufferedImage baseImage, ResourceLocation location, BufferedImage image) {
-      this.baseImage = baseImage;
-      this.location = location;
-      this.image = image;
-    }
-  }
 }

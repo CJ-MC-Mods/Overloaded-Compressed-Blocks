@@ -126,13 +126,6 @@ dependencies {
     testCompile "com.google.truth:truth:+"
 
     minecraft 'net.minecraftforge:forge:' + minecraft_version + '-' + forge_version
-
-    compile fg.deobf(project.dependencies.create("curse.maven:jei:2866141") {
-        transitive = false
-    })
-    compile fg.deobf(project.dependencies.create("curse.maven:mekanism:2873222") {
-        transitive = false
-    })
 }
 
 version = "${minecraft_version}-${mod_version}"
@@ -158,6 +151,8 @@ task sourcesJar(type: Jar) {
 artifacts {
     archives sourcesJar
 }
+
+jar.finalizedBy('reobfJar')
 
 curseforge {
     if (project.hasProperty('curseForgeAPIKey')) {

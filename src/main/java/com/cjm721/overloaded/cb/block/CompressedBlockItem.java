@@ -7,6 +7,8 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 
+import javax.annotation.Nonnull;
+
 import static com.cjm721.overloaded.cb.CompressedBlocks.ITEM_GROUP;
 import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
 
@@ -22,11 +24,15 @@ public class CompressedBlockItem extends BlockItem {
   }
 
   @Override
-  public ITextComponent getDisplayName(ItemStack stack) {
+  @Nonnull
+  public ITextComponent getDisplayName(@Nonnull ItemStack stack) {
     return new StringTextComponent(compressedBlock.getCompressionLevel() + "x ")
-        .appendSibling(new TranslationTextComponent(MODID + ".text.compressed"))
-        .appendText(" ")
-        .appendSibling(compressedBlock.getBaseBlock().asItem().getDisplayName(stack));
+            // AppendSibling
+        .func_230529_a_(new TranslationTextComponent(MODID + ".text.compressed"))
+            // AppendString
+        .func_240702_b_(" ")
+            // AppendSibling
+        .func_230529_a_(compressedBlock.getBaseBlock().asItem().getDisplayName(stack));
   }
 
   public BlockCompressed getCompressedBlock() {
