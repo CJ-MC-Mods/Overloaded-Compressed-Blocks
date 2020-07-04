@@ -15,6 +15,6 @@ Allows creation of compressed blocks for any other blocks (this includes other m
 [[dependencies.overloaded_cb]] #optional
     modId="forge" #mandatory
     mandatory=true #mandatory
-    versionRange="[30,)" #mandatory
+    versionRange="[31.2.23,)" #mandatory
     ordering="NONE"
     side="BOTH"

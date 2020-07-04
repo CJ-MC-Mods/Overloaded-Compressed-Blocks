@@ -31,6 +31,7 @@ import net.minecraftforge.forgespi.language.IModInfo;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.maven.artifact.versioning.VersionRange;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -59,16 +60,11 @@ public class CompressedBlocks {
     }
 
     IModInfo owner = ModLoadingContext.get().getActiveContainer().getModInfo();
-    List<IModInfo.ModVersion> dependencies = owner.getDependencies();
+    List<IModInfo.ModVersion> dependencies = (List<IModInfo.ModVersion>) owner.getDependencies();
 
     modids.removeAll(dependencies.stream().map(d -> d.getModId()).collect(Collectors.toList()));
     for (String modid : modids) {
-      Map<String, Object> data = new HashMap<>();
-      data.put("modId", modid);
-      data.put("mandatory", false);
-      data.put("ordering", "AFTER");
-      dependencies.add(
-          new IModInfo.ModVersion(owner, Config.of(() -> data, InMemoryFormat.defaultInstance())));
+      dependencies.add(new ModVersion(owner, modid));
     }
   }
 
@@ -129,6 +125,62 @@ public class CompressedBlocks {
       for (BlockCompressed block : blocks) {
         registry.register(new CompressedBlockItem(block));
       }
+    }
+  }
+
+  /**
+   * Pulled from Forge, Needed to prevent having to ASM / Reflection into forge
+   */
+  private static class ModVersion implements IModInfo.ModVersion {
+    private IModInfo owner;
+    private final String modId;
+    private final VersionRange versionRange;
+    private final boolean mandatory;
+    private final IModInfo.Ordering ordering;
+    private final IModInfo.DependencySide side;
+
+    public ModVersion(IModInfo owner, String modId) {
+      this.owner = owner;
+      this.modId = modId;
+      this.mandatory = false;
+      this.versionRange = IModInfo.UNBOUNDED;
+      this.ordering = IModInfo.Ordering.AFTER;
+      this.side = IModInfo.DependencySide.BOTH;
+    }
+
+    @Override
+    public String getModId() {
+      return this.modId;
+    }
+
+    @Override
+    public VersionRange getVersionRange() {
+      return this.versionRange;
+    }
+
+    @Override
+    public boolean isMandatory() {
+      return this.mandatory;
+    }
+
+    @Override
+    public IModInfo.Ordering getOrdering() {
+      return this.ordering;
+    }
+
+    @Override
+    public IModInfo.DependencySide getSide() {
+      return this.side;
+    }
+
+    @Override
+    public void setOwner(IModInfo owner) {
+      this.owner = owner;
+    }
+
+    @Override
+    public IModInfo getOwner() {
+      return this.owner;
     }
   }
 }

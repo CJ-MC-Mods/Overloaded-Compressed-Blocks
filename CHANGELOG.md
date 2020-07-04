@@ -1,3 +1,8 @@
+**Version: 1.0.13 (Release)**
+
+* Fix crash due to forge changes. Changes are same as in 1.16 mod loading.
+
+-------------------------------------------------------------------
 **Version: 1.0.12 (Release)**
 
 * Remove Config hack from 1.14 as seems to cause issues for Inventory Tweaks and no longer needed
