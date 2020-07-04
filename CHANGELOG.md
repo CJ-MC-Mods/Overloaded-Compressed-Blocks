@@ -1,3 +1,8 @@
+**Version: 1.0.13 (Beta)**
+
+* Initial 1.16 port. Recipes are not auto enabled you use need to use /datapack enable to get them on
+
+-------------------------------------------------------------------
 **Version: 1.0.12 (Release)**
 
 * Remove Config hack from 1.14 as seems to cause issues for Inventory Tweaks and no longer needed
