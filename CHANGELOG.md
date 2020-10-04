@@ -1,3 +1,9 @@
+**Version: 1.0.14 (Beta)**
+
+* Updated to 1.16.3
+* Datapack is now auto enabled (thank you JTK222)
+
+-------------------------------------------------------------------
 **Version: 1.0.13 (Beta)**
 
 * Initial 1.16 port. Recipes are not auto enabled you use need to use /datapack enable to get them on

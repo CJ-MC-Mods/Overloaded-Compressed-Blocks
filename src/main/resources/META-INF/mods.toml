@@ -2,6 +2,7 @@
 modLoader="javafml" #mandatory
 loaderVersion="[30,)" #mandatory (24 is current forge version)
 issueTrackerURL="https://github.com/CJ-MC-Mods/Overloaded/issues" #optional
+license="All rights reserved"
 [[mods]] #mandatory
 modId="overloaded_cb" #mandatory
 version="${version}" #mandator

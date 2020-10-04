@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.data.LanguageMetadataSection;
 import net.minecraft.profiler.IProfiler;
 import net.minecraft.resources.*;
 import net.minecraft.resources.data.IMetadataSectionSerializer;
@@ -158,7 +159,7 @@ public class BlockResourcePack implements IResourcePack {
   @Override
   public <T> T getMetadata(@Nonnull IMetadataSectionSerializer<T> deserializer) throws IOException {
     JsonObject packData = new JsonObject();
-    packData.addProperty("pack_format", 4);
+    packData.addProperty("pack_format", 6);
     packData.addProperty("description", "Overloaded Compressed Assets");
     return deserializer.deserialize(packData);
   }

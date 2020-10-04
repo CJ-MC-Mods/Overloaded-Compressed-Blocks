@@ -17,36 +17,29 @@ import net.minecraft.resources.IPackFinder;
 import net.minecraft.resources.IPackNameDecorator;
 import net.minecraft.resources.IResourcePack;
 import net.minecraft.resources.ResourcePackInfo;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
-import net.minecraftforge.fml.loading.moddiscovery.ModFileInfo;
 import net.minecraftforge.fml.packs.ModFileResourcePack;
-import net.minecraftforge.forgespi.language.IModFileInfo;
 import net.minecraftforge.forgespi.language.IModInfo;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.VersionRange;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
-import java.util.*;
-import java.util.function.BiFunction;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -63,7 +56,6 @@ public class CompressedBlocks {
   public CompressedBlocks() {
     ClientConfig.init();
     MinecraftForge.EVENT_BUS.addListener(this::serverAboutToStartEvent);
-    MinecraftForge.EVENT_BUS.addListener(this::serverStarting);
 
     Set<String> modids = new HashSet<>();
     for (CompressedEntry entry : CompressedConfig.getCompressedEntries()) {
@@ -75,7 +67,6 @@ public class CompressedBlocks {
     }
 
     IModInfo owner = ModLoadingContext.get().getActiveContainer().getModInfo();
-//    ModList.get().getModFiles().add(new ModFileInfo())
     ModLoadingContext.get().registerExtensionPoint(RESOURCEPACK, () -> CompressedBlocks::extentionPoint);
 
     // Very Unsafe cast if forge ever doesn't use their interface for interacting with the objects
@@ -93,26 +84,25 @@ public class CompressedBlocks {
 
   public void serverAboutToStartEvent(FMLServerAboutToStartEvent event) {
     event.getServer().getResourcePacks().addPackFinder(new IPackFinder() {
-      @Override
-      public <T extends ResourcePackInfo> void func_230230_a_(@Nonnull Consumer<T> consumer, @Nonnull ResourcePackInfo.IFactory<T> packInfoFactory) {
-        T pack = ResourcePackInfo.createResourcePack(
-            "overloaded_cb_injected",
-            false,
-            () -> BlockResourcePack.INSTANCE,
-            packInfoFactory,
-            ResourcePackInfo.Priority.BOTTOM,
-            IPackNameDecorator.field_232625_a_);
-        consumer.accept(pack);
-      }
+        @Override
+        public void func_230230_a_(Consumer<ResourcePackInfo> consumer, ResourcePackInfo.IFactory packInfoFactory) {
+            ResourcePackInfo pack = ResourcePackInfo.createResourcePack(
+                    "mod:overloaded_cb_injected",
+                    true,
+                    () -> BlockResourcePack.INSTANCE,
+                    packInfoFactory,
+                    ResourcePackInfo.Priority.BOTTOM,
+                    IPackNameDecorator.field_232625_a_);
+            consumer.accept(pack);
+        }
     });
+    // Have to reload so the pack is found
     event.getServer().getResourcePacks().reloadPacksFromFinders();
-  }
 
-  public void serverStarting(FMLServerStartedEvent event) {
-//    Set<String> packNames = event.getServer().getResourcePacks().getEnabledPacks().stream().map(pack -> pack.getName()).collect(Collectors.toSet());
-//    if(packNames.add("overloaded_cb_injected")) {
-//      event.getServer().getResourcePacks().setEnabledPacks(packNames);
-//    }
+    Set<String> packNames = event.getServer().getResourcePacks().getEnabledPacks().stream().map(pack -> pack.getName()).collect(Collectors.toSet());
+    if(packNames.add("overloaded_cb_injected")) {
+      event.getServer().func_240780_a_(packNames);
+    }
   }
 
   public static final ItemGroup ITEM_GROUP = new ItemGroup("Overloaded_Compressed_Blocks") {

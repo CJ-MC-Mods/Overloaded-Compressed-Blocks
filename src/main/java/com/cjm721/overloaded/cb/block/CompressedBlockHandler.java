@@ -4,7 +4,7 @@ import com.cjm721.overloaded.cb.config.CompressedConfig;
 import com.cjm721.overloaded.cb.config.CompressedEntry;
 import com.cjm721.overloaded.cb.resources.CompressedBlockAssets;
 import net.minecraft.block.Block;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.RegistryKey;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.LinkedList;
@@ -18,15 +18,15 @@ public class CompressedBlockHandler {
 
 
     for (CompressedEntry entry : CompressedConfig.getCompressedEntries()) {
-      List<Map.Entry<ResourceLocation, Block>> matchedEntries = ForgeRegistries.BLOCKS.getEntries().stream().filter(e -> e.getKey().toString().matches(entry
+      List<Map.Entry<RegistryKey<Block>, Block>> matchedEntries = ForgeRegistries.BLOCKS.getEntries().stream().filter(e ->  e.getKey().func_240901_a_().toString().matches(entry
           .baseRegistryName))
           .collect(Collectors.toList());
 
-      for (Map.Entry<ResourceLocation, Block> matchedEntry : matchedEntries) {
+      for (Map.Entry<RegistryKey<Block>, Block> matchedEntry : matchedEntries) {
         Block unCompressed = matchedEntry.getValue();
 
         for (int i = 0; i < entry.depth; i++) {
-          BlockCompressed compressedBlock = new BlockCompressed("compressed_" + matchedEntry.getKey().getPath(),
+          BlockCompressed compressedBlock = new BlockCompressed("compressed_" + matchedEntry.getKey().func_240901_a_().getPath(),
               matchedEntry.getValue(), entry, i + 1);
 
           if (entry.recipeEnabled) {

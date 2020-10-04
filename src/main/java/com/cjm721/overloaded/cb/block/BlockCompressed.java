@@ -14,9 +14,12 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.IBlockReader;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.List;
@@ -29,10 +32,13 @@ public class BlockCompressed extends Block {
 
   private static final DecimalFormat numberFormat;
 
+  private static final Method fillStateContainer;
+
   static {
     numberFormat = new DecimalFormat("#,###");
     numberFormat.setRoundingMode(RoundingMode.HALF_DOWN);
     numberFormat.setMaximumFractionDigits(0);
+    fillStateContainer = ObfuscationReflectionHelper.findMethod(Block.class, "func_207184_a", StateContainer.Builder.class);
   }
 
   private Block baseBlock;
@@ -61,12 +67,18 @@ public class BlockCompressed extends Block {
   }
 
   @Override
-  public void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-    if (baseBlock == null) {
-      currentConstructionBaseBlock.fillStateContainer(builder);
-    } else {
-      baseBlock.fillStateContainer(builder);
+  protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+    try {
+      if (baseBlock == null) {
+        fillStateContainer.invoke(currentConstructionBaseBlock, builder);
+      } else {
+        fillStateContainer.invoke(baseBlock, builder);
+      }
+    } catch (IllegalAccessException|InvocationTargetException e) {
+      throw new IllegalStateException(e);
     }
+
+    super.fillStateContainer(builder);
   }
 
   @OnlyIn(Dist.CLIENT)
