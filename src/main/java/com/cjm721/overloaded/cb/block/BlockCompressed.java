@@ -38,7 +38,7 @@ public class BlockCompressed extends Block {
     numberFormat = new DecimalFormat("#,###");
     numberFormat.setRoundingMode(RoundingMode.HALF_DOWN);
     numberFormat.setMaximumFractionDigits(0);
-    fillStateContainer = ObfuscationReflectionHelper.findMethod(Block.class, "func_207184_a", StateContainer.Builder.class);
+    fillStateContainer = ObfuscationReflectionHelper.findMethod(Block.class, "func_206840_a", StateContainer.Builder.class);
   }
 
   private Block baseBlock;
