@@ -1,3 +1,9 @@
+**Version: 1.0.16 (Beta)**
+
+* Fix error message in log related to metadata.
+
+-------------------------------------------------------------------
+
 **Version: 1.0.15 (Beta)**
 
 * Fix ASM crash (#12)

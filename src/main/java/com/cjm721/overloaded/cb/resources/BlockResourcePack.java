@@ -159,6 +159,9 @@ public class BlockResourcePack implements IResourcePack {
   @Override
   public <T> T getMetadata(@Nonnull IMetadataSectionSerializer<T> deserializer) throws IOException {
     JsonObject packData = new JsonObject();
+    if ("language".equals(deserializer.getSectionName())) {
+      return deserializer.deserialize(packData);
+    }
     packData.addProperty("pack_format", 6);
     packData.addProperty("description", "Overloaded Compressed Assets");
     return deserializer.deserialize(packData);
