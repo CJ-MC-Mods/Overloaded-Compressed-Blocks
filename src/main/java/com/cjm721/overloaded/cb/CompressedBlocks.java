@@ -18,15 +18,22 @@ import net.minecraft.resources.IPackNameDecorator;
 import net.minecraft.resources.IResourcePack;
 import net.minecraft.resources.ResourcePackInfo;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.ModContainer;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
+import net.minecraftforge.fml.loading.LoadingModList;
+import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
 import net.minecraftforge.fml.packs.ModFileResourcePack;
 import net.minecraftforge.forgespi.language.IModInfo;
 import net.minecraftforge.registries.IForgeRegistry;
@@ -35,15 +42,14 @@ import org.apache.logging.log4j.Logger;
 import org.apache.maven.artifact.versioning.VersionRange;
 
 import javax.annotation.Nonnull;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
+import static java.util.stream.Collectors.toList;
 import static net.minecraftforge.fml.ExtensionPoint.RESOURCEPACK;
 
 @Mod(MODID)
@@ -72,7 +78,36 @@ public class CompressedBlocks {
     // Very Unsafe cast if forge ever doesn't use their interface for interacting with the objects
     List<IModInfo.ModVersion> dependencies = (List<IModInfo.ModVersion>) owner.getDependencies();
 
-    modids.removeAll(dependencies.stream().map(d -> d.getModId()).collect(Collectors.toList()));
+    modids.removeAll(dependencies.stream().map(d -> d.getModId()).collect(toList()));
+
+    try {
+      ModList modList = ModList.get();
+
+      List<ModInfo> infoList = modList.getMods();
+      Iterator<ModInfo> infoItr = infoList.iterator();
+      ModInfo currentInfo = null;
+      while(infoItr.hasNext()) {
+        ModInfo info = infoItr.next();
+        if(info.getModId().equals(MODID)) {
+          infoItr.remove();
+          currentInfo = info;
+        }
+      }
+      infoList.add(currentInfo);
+
+
+      Field modsField = ModList.class.getDeclaredField("mods");
+      modsField.setAccessible(true);
+      List<ModContainer> containerList = ((List<ModContainer>) modsField.get(modList));
+
+      containerList.remove(ModLoadingContext.get().getActiveContainer());
+      containerList.add(ModLoadingContext.get().getActiveContainer());
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    } catch (NoSuchFieldException e) {
+      e.printStackTrace();
+    }
+
     for (String modid : modids) {
       dependencies.add(new ModVersion(owner, modid));
     }
@@ -126,6 +161,10 @@ public class CompressedBlocks {
 
     @SubscribeEvent
     public static void onBlocksRegistry(final RegistryEvent.Register<Block> blockRegistryEvent) {
+      while (blockRegistryEvent.getRegistry().getKeys().stream().filter(s -> s.getNamespace().equals("overloaded")).map(ResourceLocation::toString).collect(toList()).size() == 0) {
+         ;
+      }
+
       DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
         try {
           BlockResourcePack.INSTANCE.inject(Minecraft.getInstance().getResourceManager());
@@ -151,6 +190,14 @@ public class CompressedBlocks {
       for (BlockCompressed block : blocks) {
         registry.register(new CompressedBlockItem(block));
       }
+    }
+  }
+
+  @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+  public static class ForgeEventHandler {
+    @SubscribeEvent
+    public static void fmlComplete(FMLLoadCompleteEvent event) {
+      LOGGER.error("FMLLoadCompleteEvent");
     }
   }
 
