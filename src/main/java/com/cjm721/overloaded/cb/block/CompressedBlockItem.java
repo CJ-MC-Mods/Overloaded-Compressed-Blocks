@@ -28,11 +28,11 @@ public class CompressedBlockItem extends BlockItem {
   public ITextComponent getDisplayName(@Nonnull ItemStack stack) {
     return new StringTextComponent(compressedBlock.getCompressionLevel() + "x ")
             // AppendSibling
-        .func_230529_a_(new TranslationTextComponent(MODID + ".text.compressed"))
+        .append(new TranslationTextComponent(MODID + ".text.compressed"))
             // AppendString
-        .func_240702_b_(" ")
+        .appendString(" ")
             // AppendSibling
-        .func_230529_a_(compressedBlock.getBaseBlock().asItem().getDisplayName(stack));
+        .append(compressedBlock.getBaseBlock().asItem().getDisplayName(stack));
   }
 
   public BlockCompressed getCompressedBlock() {

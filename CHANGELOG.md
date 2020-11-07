@@ -1,3 +1,9 @@
+**Version: 1.0.17 (Beta)**
+
+* May have a potential fix for not all modded blocks working (based on loading order). May fix #14.
+
+-------------------------------------------------------------------
+
 **Version: 1.0.16 (Beta)**
 
 * Fix error message in log related to metadata.

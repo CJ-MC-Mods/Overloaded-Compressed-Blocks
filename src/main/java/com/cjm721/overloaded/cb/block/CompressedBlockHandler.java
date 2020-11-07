@@ -18,7 +18,7 @@ public class CompressedBlockHandler {
 
 
     for (CompressedEntry entry : CompressedConfig.getCompressedEntries()) {
-      List<Map.Entry<RegistryKey<Block>, Block>> matchedEntries = ForgeRegistries.BLOCKS.getEntries().stream().filter(e ->  e.getKey().func_240901_a_().toString().matches(entry
+      List<Map.Entry<RegistryKey<Block>, Block>> matchedEntries = ForgeRegistries.BLOCKS.getEntries().stream().filter(e ->  e.getKey().getLocation().toString().matches(entry
           .baseRegistryName))
           .collect(Collectors.toList());
 
@@ -26,7 +26,7 @@ public class CompressedBlockHandler {
         Block unCompressed = matchedEntry.getValue();
 
         for (int i = 0; i < entry.depth; i++) {
-          BlockCompressed compressedBlock = new BlockCompressed("compressed_" + matchedEntry.getKey().func_240901_a_().getPath(),
+          BlockCompressed compressedBlock = new BlockCompressed("compressed_" + matchedEntry.getKey().getLocation().getPath(),
               matchedEntry.getValue(), entry, i + 1);
 
           if (entry.recipeEnabled) {

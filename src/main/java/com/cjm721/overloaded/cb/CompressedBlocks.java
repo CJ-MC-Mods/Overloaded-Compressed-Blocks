@@ -33,6 +33,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
 import net.minecraftforge.fml.loading.LoadingModList;
+import net.minecraftforge.fml.loading.moddiscovery.ModFileInfo;
 import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
 import net.minecraftforge.fml.packs.ModFileResourcePack;
 import net.minecraftforge.forgespi.language.IModInfo;
@@ -49,6 +50,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.cjm721.overloaded.cb.CompressedBlocks.MODID;
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static java.util.stream.Collectors.toList;
 import static net.minecraftforge.fml.ExtensionPoint.RESOURCEPACK;
 
@@ -81,6 +83,16 @@ public class CompressedBlocks {
     modids.removeAll(dependencies.stream().map(d -> d.getModId()).collect(toList()));
 
     try {
+//      List<ModFileInfo> modFiles = LoadingModList.get().getModFiles();
+//      ModFileInfo modFileInfo = modFiles.stream().filter(info -> info.getMods().stream().anyMatch(p -> MODID.equals(p.getModId()))).collect(onlyElement());
+//      modFiles.remove(modFileInfo);
+//      modFiles.add(modFileInfo);
+
+      List<ModInfo> loadingModList = LoadingModList.get().getMods();
+      ModInfo modInfo = loadingModList.stream().filter(p -> MODID.equals(p.getModId())).collect(onlyElement());
+      loadingModList.remove(modInfo);
+      loadingModList.add(modInfo);
+
       ModList modList = ModList.get();
 
       List<ModInfo> infoList = modList.getMods();
@@ -120,14 +132,14 @@ public class CompressedBlocks {
   public void serverAboutToStartEvent(FMLServerAboutToStartEvent event) {
     event.getServer().getResourcePacks().addPackFinder(new IPackFinder() {
         @Override
-        public void func_230230_a_(Consumer<ResourcePackInfo> consumer, ResourcePackInfo.IFactory packInfoFactory) {
+        public void findPacks(Consumer<ResourcePackInfo> consumer, ResourcePackInfo.IFactory packInfoFactory) {
             ResourcePackInfo pack = ResourcePackInfo.createResourcePack(
                     "mod:overloaded_cb_injected",
                     true,
                     () -> BlockResourcePack.INSTANCE,
                     packInfoFactory,
                     ResourcePackInfo.Priority.BOTTOM,
-                    IPackNameDecorator.field_232625_a_);
+                    IPackNameDecorator.PLAIN);
             consumer.accept(pack);
         }
     });

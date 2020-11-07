@@ -19,9 +19,3 @@ Allows creation of compressed blocks for any other blocks (this includes other m
     versionRange="[30,)" #mandatory
     ordering="NONE"
     side="BOTH"
-[[dependencies.overloaded_cb]] #optional
-    modId="overloaded" #mandatory
-    mandatory=true #mandatory
-    versionRange="[0.0.90,)" #mandatory
-    ordering="BEFORE"
-    side="BOTH"
