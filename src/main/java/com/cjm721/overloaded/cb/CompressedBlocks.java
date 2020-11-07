@@ -57,25 +57,7 @@ public class CompressedBlocks {
     ClientConfig.init();
     MinecraftForge.EVENT_BUS.addListener(this::serverAboutToStartEvent);
 
-    Set<String> modids = new HashSet<>();
-    for (CompressedEntry entry : CompressedConfig.getCompressedEntries()) {
-      int index = entry.baseRegistryName.indexOf(':');
-
-      if (index != -1) {
-        modids.add(entry.baseRegistryName.substring(0, index).replaceAll("[^a-z0-9/._-]", ""));
-      }
-    }
-
-    IModInfo owner = ModLoadingContext.get().getActiveContainer().getModInfo();
     ModLoadingContext.get().registerExtensionPoint(RESOURCEPACK, () -> CompressedBlocks::extentionPoint);
-
-    // Very Unsafe cast if forge ever doesn't use their interface for interacting with the objects
-    List<IModInfo.ModVersion> dependencies = (List<IModInfo.ModVersion>) owner.getDependencies();
-
-    modids.removeAll(dependencies.stream().map(d -> d.getModId()).collect(Collectors.toList()));
-    for (String modid : modids) {
-      dependencies.add(new ModVersion(owner, modid));
-    }
   }
 
   private static IResourcePack extentionPoint(Minecraft minecraft, ModFileResourcePack pack) {
@@ -85,14 +67,14 @@ public class CompressedBlocks {
   public void serverAboutToStartEvent(FMLServerAboutToStartEvent event) {
     event.getServer().getResourcePacks().addPackFinder(new IPackFinder() {
         @Override
-        public void func_230230_a_(Consumer<ResourcePackInfo> consumer, ResourcePackInfo.IFactory packInfoFactory) {
+        public void findPacks(Consumer<ResourcePackInfo> consumer, ResourcePackInfo.IFactory packInfoFactory) {
             ResourcePackInfo pack = ResourcePackInfo.createResourcePack(
                     "mod:overloaded_cb_injected",
                     true,
                     () -> BlockResourcePack.INSTANCE,
                     packInfoFactory,
                     ResourcePackInfo.Priority.BOTTOM,
-                    IPackNameDecorator.field_232625_a_);
+                    IPackNameDecorator.PLAIN);
             consumer.accept(pack);
         }
     });
@@ -151,62 +133,6 @@ public class CompressedBlocks {
       for (BlockCompressed block : blocks) {
         registry.register(new CompressedBlockItem(block));
       }
-    }
-  }
-
-  /**
-   * Pulled from Forge, Needed to prevent having to
-   */
-  private static class ModVersion implements IModInfo.ModVersion {
-    private IModInfo owner;
-    private final String modId;
-    private final VersionRange versionRange;
-    private final boolean mandatory;
-    private final IModInfo.Ordering ordering;
-    private final IModInfo.DependencySide side;
-
-    public ModVersion(IModInfo owner, String modId) {
-      this.owner = owner;
-      this.modId = modId;
-      this.mandatory = false;
-      this.versionRange = IModInfo.UNBOUNDED;
-      this.ordering = IModInfo.Ordering.AFTER;
-      this.side = IModInfo.DependencySide.BOTH;
-    }
-
-    @Override
-    public String getModId() {
-      return this.modId;
-    }
-
-    @Override
-    public VersionRange getVersionRange() {
-      return this.versionRange;
-    }
-
-    @Override
-    public boolean isMandatory() {
-      return this.mandatory;
-    }
-
-    @Override
-    public IModInfo.Ordering getOrdering() {
-      return this.ordering;
-    }
-
-    @Override
-    public IModInfo.DependencySide getSide() {
-      return this.side;
-    }
-
-    @Override
-    public void setOwner(IModInfo owner) {
-      this.owner = owner;
-    }
-
-    @Override
-    public IModInfo getOwner() {
-      return this.owner;
     }
   }
 }
