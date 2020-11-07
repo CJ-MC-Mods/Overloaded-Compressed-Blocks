@@ -48,6 +48,8 @@ public class BlockCompressed extends Block {
   private BlockCompressed compressed;
   private Block unCompressed;
 
+
+
   BlockCompressed(@Nonnull String registryName, Block baseBlock, CompressedEntry entry, int compressionLevel) {
     super(Properties.from(recordBaseBlock(baseBlock))
         .hardnessAndResistance((float) Math.min(
