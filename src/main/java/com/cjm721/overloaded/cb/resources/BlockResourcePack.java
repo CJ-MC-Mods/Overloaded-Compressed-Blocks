@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 import static com.cjm721.overloaded.cb.CompressedBlocks.LOGGER;
@@ -50,6 +51,7 @@ public class BlockResourcePack implements IResourcePack {
 
   private Map<ResourceLocation, TextureEntry> imagesCache = Maps.newConcurrentMap();
   private Map<ResourceLocation, TextureEntry> oldImageCache = Maps.newConcurrentMap();
+  private AtomicInteger progresssCount = new AtomicInteger();
 
   private final Set<String> domains = Sets.newHashSet();
 
@@ -58,13 +60,34 @@ public class BlockResourcePack implements IResourcePack {
   }
 
   void forceGenerateTextures() {
-    LOGGER.info("Force Texture Generation Started");
+    final int startingSize = images.size();
+    LOGGER.info(String.format("Force Texture Generation Started for %d textures.", startingSize));
     Instant start = Instant.now();
     try {
-      int poolSize = Math.min(Runtime.getRuntime().availableProcessors(), Math.max(1, Runtime.getRuntime().availableProcessors() - ClientConfig.INSTANCE.threadsToKeepFree.get()));
-      imagesCache = new ForkJoinPool(poolSize).submit(() ->
+      progresssCount.set(0);
+      ForkJoinPool pool = new ForkJoinPool(Math.min(Runtime.getRuntime().availableProcessors(), Math.max(1, Runtime.getRuntime().availableProcessors() - ClientConfig.INSTANCE.threadsToKeepFree.get())));
+      Thread monitoringThread = new Thread(() -> {
+        while (true) {
+          LOGGER.info(String.format("Texture Generation is at %d out of %d", progresssCount.get(), startingSize));
+          if(progresssCount.get() == startingSize) {
+            break;
+          }
+          try {
+            Thread.sleep(1000);
+          } catch (InterruptedException e) {
+            break;
+          }
+        }
+      });
+      monitoringThread.setDaemon(true);
+      monitoringThread.setName("TextureGenerationLogger");
+      monitoringThread.start();
+      imagesCache = pool.submit(() ->
           images.entrySet().parallelStream().map(entry -> generateTexture(entry.getKey(), entry.getValue()))
               .collect(toConcurrentMap(entry -> entry.location, entry -> entry))).get();
+      pool.shutdown();
+      monitoringThread.interrupt();
+      monitoringThread.join();
     } catch (Exception e) {
       LOGGER.error("Failed to generate textures", e);
       throw new RuntimeException(e);
@@ -277,6 +300,8 @@ public class BlockResourcePack implements IResourcePack {
     } catch (Exception e) {
       LOGGER.error(String.format("Unable to generate %s texture", key), e);
       throw new RuntimeException(e);
+    } finally {
+      progresssCount.incrementAndGet();
     }
   }
 

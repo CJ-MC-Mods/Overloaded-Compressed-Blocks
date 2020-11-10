@@ -1,3 +1,10 @@
+**Version: 1.0.19 (Beta)**
+
+* Shutdown worker pools once done with them
+* Add some monitoring logging to Texture Generation so logs don't look like it has stalled
+
+-------------------------------------------------------------------
+
 **Version: 1.0.18 (Beta)**
 
 * Remove debug code that caused this to stall if Overloaded was not also installed (dependency testing, sorry about that).
