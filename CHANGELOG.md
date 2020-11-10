@@ -1,3 +1,9 @@
+**Version: 1.0.18 (Beta)**
+
+* Remove debug code that caused this to stall if Overloaded was not also installed (dependency testing, sorry about that).
+
+-------------------------------------------------------------------
+
 **Version: 1.0.17 (Beta)**
 
 * May have a potential fix for not all modded blocks working (based on loading order). May fix #14.

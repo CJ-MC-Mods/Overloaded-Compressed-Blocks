@@ -173,10 +173,6 @@ public class CompressedBlocks {
 
     @SubscribeEvent
     public static void onBlocksRegistry(final RegistryEvent.Register<Block> blockRegistryEvent) {
-      while (blockRegistryEvent.getRegistry().getKeys().stream().filter(s -> s.getNamespace().equals("overloaded")).map(ResourceLocation::toString).collect(toList()).size() == 0) {
-         ;
-      }
-
       DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
         try {
           BlockResourcePack.INSTANCE.inject(Minecraft.getInstance().getResourceManager());
