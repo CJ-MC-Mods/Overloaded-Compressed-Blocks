@@ -136,10 +136,10 @@ public class CompressedBlocks {
         public void findPacks(Consumer<ResourcePackInfo> consumer, ResourcePackInfo.IFactory packInfoFactory) {
             ResourcePackInfo pack = ResourcePackInfo.createResourcePack(
                     "mod:overloaded_cb_injected",
-                    true,
+                    false,
                     () -> BlockResourcePack.INSTANCE,
                     packInfoFactory,
-                    ResourcePackInfo.Priority.BOTTOM,
+                    ResourcePackInfo.Priority.TOP,
                     IPackNameDecorator.PLAIN);
             consumer.accept(pack);
         }
@@ -148,8 +148,21 @@ public class CompressedBlocks {
     event.getServer().getResourcePacks().reloadPacksFromFinders();
 
     List<String> packNames = event.getServer().getResourcePacks().getEnabledPacks().stream().map(pack -> pack.getName()).collect(toList());
-    if (!packNames.contains("overloaded_cb_injected")) {
-      packNames.add("overloaded_cb_injected");
+    if (!packNames.contains("mod:overloaded_cb_injected")) {
+      boolean added = false;
+      for (int i = 0; i < packNames.size(); i++) {
+        String name = packNames.get(i);
+        if(name.startsWith("vanilla") || name.startsWith("mod:")) {
+          continue;
+        }
+        // TODO: Make this load after the last mod that is a depdency rather then last of mods.
+        packNames.add(i, "mod:overloaded_cb_injected");
+        added = true;
+        break;
+      }
+      if(!added) {
+        packNames.add("mod:overloaded_cb_injected");
+      }
       event.getServer().func_240780_a_(packNames);
     }
   }

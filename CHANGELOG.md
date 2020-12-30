@@ -1,3 +1,9 @@
+**Version: 1.0.21 (Beta)**
+
+* Move data pack to last of mods, would be better to have it after last depdency. 
+
+-------------------------------------------------------------------
+
 **Version: 1.0.20 (Beta)**
 
 * Convert data pack enabling code from set to list, may fix #18 but belive other things are real cause 
