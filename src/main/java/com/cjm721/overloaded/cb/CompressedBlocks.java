@@ -7,6 +7,7 @@ import com.cjm721.overloaded.cb.config.ClientConfig;
 import com.cjm721.overloaded.cb.config.CompressedConfig;
 import com.cjm721.overloaded.cb.config.CompressedEntry;
 import com.cjm721.overloaded.cb.resources.BlockResourcePack;
+import com.google.common.collect.ImmutableSet;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
@@ -146,8 +147,9 @@ public class CompressedBlocks {
     // Have to reload so the pack is found
     event.getServer().getResourcePacks().reloadPacksFromFinders();
 
-    Set<String> packNames = event.getServer().getResourcePacks().getEnabledPacks().stream().map(pack -> pack.getName()).collect(Collectors.toSet());
-    if(packNames.add("overloaded_cb_injected")) {
+    List<String> packNames = event.getServer().getResourcePacks().getEnabledPacks().stream().map(pack -> pack.getName()).collect(toList());
+    if (!packNames.contains("overloaded_cb_injected")) {
+      packNames.add("overloaded_cb_injected");
       event.getServer().func_240780_a_(packNames);
     }
   }

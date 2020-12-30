@@ -1,3 +1,9 @@
+**Version: 1.0.20 (Beta)**
+
+* Convert data pack enabling code from set to list, may fix #18 but belive other things are real cause 
+
+-------------------------------------------------------------------
+
 **Version: 1.0.19 (Beta)**
 
 * Shutdown worker pools once done with them
